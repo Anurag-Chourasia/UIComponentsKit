@@ -45,7 +45,15 @@ public struct SurfaceCard<Content: View>: View {
         content
             .padding(metrics.padding)
             .background {
-                shape.fill(colors.surface)
+                Group {
+                    if clipsContent {
+                        // Clip the rectangular fill once with the content. Filling a
+                        // rounded shape first would double-antialias its edge.
+                        Rectangle().fill(colors.surface)
+                    } else {
+                        shape.fill(colors.surface)
+                    }
+                }
                     .shadow(color: shadow.color, radius: shadow.radius, x: shadow.x, y: shadow.y)
                     .padding(backgroundInsets)
                     .accessibilityHidden(true)

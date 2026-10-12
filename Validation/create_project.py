@@ -20,7 +20,7 @@ deps=[obj('XCSwiftPackageProductDependency',productName=name,package=r) for name
 def configs(bundle,testing=False):
  configs=[]
  for name in ['Debug','Release']:
-  settings=dict(PRODUCT_BUNDLE_IDENTIFIER=bundle,PRODUCT_NAME='$(TARGET_NAME)',GENERATE_INFOPLIST_FILE='YES',SDKROOT='iphoneos',IPHONEOS_DEPLOYMENT_TARGET='17.0',SWIFT_VERSION='5.0',TARGETED_DEVICE_FAMILY='1,2',CODE_SIGNING_ALLOWED='NO',SWIFT_OPTIMIZATION_LEVEL='-Onone' if name=='Debug' else '-O',ENABLE_TESTABILITY='YES',ONLY_ACTIVE_ARCH='YES')
+  settings=dict(PRODUCT_BUNDLE_IDENTIFIER=bundle,PRODUCT_NAME='$(TARGET_NAME)',GENERATE_INFOPLIST_FILE='YES',SDKROOT='iphoneos',IPHONEOS_DEPLOYMENT_TARGET='17.0',SWIFT_VERSION='5.0',TARGETED_DEVICE_FAMILY='1,2',CODE_SIGNING_ALLOWED='NO',SWIFT_OPTIMIZATION_LEVEL='-Onone' if name=='Debug' else '-O',ENABLE_TESTABILITY='YES',ONLY_ACTIVE_ARCH='YES',ALWAYS_SEARCH_USER_PATHS='NO')
   if testing:settings['TEST_TARGET_NAME']='Interaction'
   else:settings['INFOPLIST_KEY_UILaunchScreen_Generation']='YES'
   configs.append(obj('XCBuildConfiguration',name=name,buildSettings=settings))

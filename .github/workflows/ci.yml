@@ -69,6 +69,5 @@ jobs:
           build
 
       - name: Test native iOS interactions
-        run: |
-          python3 Validation/create_project.py "$RUNNER_TEMP/interaction-harness"
-          xcodebuild -project "$RUNNER_TEMP/interaction-harness/Interaction.xcodeproj" -scheme Interaction -destination 'platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0' -derivedDataPath "$RUNNER_TEMP/interaction-derived" SDKROOT=iphonesimulator CODE_SIGNING_ALLOWED=NO test
+        timeout-minutes: 15
+        run: bash Validation/run-interactions.sh
