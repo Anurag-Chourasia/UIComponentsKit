@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+
+- Add StateMessage, IconMessageBanner, FieldPlaceholder/fieldPlaceholder, OutlinedIconLabel and CenteredProgressOverlay from app compositions.
+- Consume DesignTokensKit 1.1.0; existing 1.0.0 component APIs are unchanged.
+
 ## 1.0.0 — candidate
 
 - Add generic configurable card, distinct visual/caption tile, and native button style.
