@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0
+
+- Add CatalogTile with shared list/grid composition and independent artwork, details, and action slots.
+- Add CatalogLayout and a native layout menu with accessibility-size fallback.
+- Preserve the previous compact grid/list geometry with pixel-parity tests; cover independent actions and menu behavior with native iOS tests.
+- Require DesignTokensKit 1.2.0.
+
 ## 1.1.0
 
 - Add StateMessage, IconMessageBanner, FieldPlaceholder/fieldPlaceholder, OutlinedIconLabel and CenteredProgressOverlay from app compositions.

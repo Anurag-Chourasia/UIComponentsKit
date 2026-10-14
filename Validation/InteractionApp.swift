@@ -6,7 +6,9 @@ import DesignTokensKit
     @State private var count = 0
     var body: some Scene {
         WindowGroup {
-            if CommandLine.arguments.contains("presentation") {
+            if CommandLine.arguments.contains("catalog") {
+                CatalogDemo().environment(\.dynamicTypeSize, CommandLine.arguments.contains("large-type") ? .accessibility5 : .large)
+            } else if CommandLine.arguments.contains("presentation") {
                 PresentationDemo()
             } else {
                 VStack {
@@ -67,5 +69,34 @@ private struct PresentationDemo: View {
                 background: { Color.gray.opacity(0.1) }
                 .frame(height: 80)
         }.padding()
+    }
+}
+
+
+private struct CatalogDemo: View {
+    @State private var layout = CatalogLayout.list
+    @State private var count = 0
+    @State private var unavailable = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    var body: some View {
+        ScrollView {
+            VStack {
+                Text("Count \(count)").accessibilityIdentifier("count")
+                Text(layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize).rawValue).accessibilityIdentifier("layout-value")
+                CatalogLayoutMenu(selection: layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize),
+                                  isAccessibilitySize: dynamicTypeSize.isAccessibilitySize,
+                                  onSelect: { layout = $0 }, onGridUnavailable: { unavailable = true })
+                    .accessibilityIdentifier("layout-menu")
+                if unavailable { Text("List required").accessibilityIdentifier("unavailable") }
+                CatalogTile(layout: layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize),
+                            colors: SemanticColors(surface: DesignColor.groupedSecondary)) {
+                    Image(systemName: "book").accessibilityHidden(true)
+                } details: {
+                    Button("Open item") { count += 10 }.accessibilityIdentifier("open-item")
+                } accessory: {
+                    Button("Favorite") { count += 1 }.accessibilityIdentifier("favorite-item")
+                }
+            }.padding()
+        }
     }
 }

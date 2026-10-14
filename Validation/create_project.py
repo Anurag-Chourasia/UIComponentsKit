@@ -15,7 +15,7 @@ testProduct=obj('PBXFileReference',explicitFileType='wrapper.cfbundle',path='Int
 products=obj('PBXGroup',children=[appProduct,testProduct],name='Products',sourceTree='<group>')
 group=obj('PBXGroup',children=[appfile,testfile,products],sourceTree='<group>')
 ref=obj('XCLocalSwiftPackageReference',relativePath=str(package))
-tokenref=obj('XCRemoteSwiftPackageReference',repositoryURL='https://github.com/Anurag-Chourasia/DesignTokensKit.git',requirement=dict(kind='exactVersion',version='1.1.0'))
+tokenref=obj('XCRemoteSwiftPackageReference',repositoryURL='https://github.com/Anurag-Chourasia/DesignTokensKit.git',requirement=dict(kind='exactVersion',version='1.2.0'))
 deps=[obj('XCSwiftPackageProductDependency',productName=name,package=r) for name,r in [('UIComponentsKit',ref),('DesignTokensKit',tokenref)]]
 def configs(bundle,testing=False):
  configs=[]
