@@ -1,5 +1,30 @@
 import XCTest
 final class InteractionTests: XCTestCase {
+    @MainActor func testCatalogActionsRemainIndependentInBothLayouts() {
+        let app = XCUIApplication()
+        app.launchArguments = ["catalog"]
+        app.launch()
+        XCTAssertTrue(app.buttons["favorite-item"].waitForExistence(timeout: 10))
+        app.buttons["favorite-item"].tap()
+        XCTAssertEqual(app.staticTexts["count"].label, "Count 1")
+        app.buttons["open-item"].tap()
+        XCTAssertEqual(app.staticTexts["count"].label, "Count 11")
+        app.buttons["layout-menu"].tap()
+        app.buttons["Grid"].tap()
+        XCTAssertEqual(app.staticTexts["layout-value"].label, "grid")
+        app.buttons["favorite-item"].tap()
+        XCTAssertEqual(app.staticTexts["count"].label, "Count 12")
+    }
+    @MainActor func testCatalogLargeTextUsesListAndExplainsUnavailableGrid() {
+        let app = XCUIApplication()
+        app.launchArguments = ["catalog", "large-type"]
+        app.launch()
+        XCTAssertTrue(app.buttons["layout-menu"].waitForExistence(timeout: 10))
+        app.buttons["layout-menu"].tap()
+        app.buttons["Grid"].tap()
+        XCTAssertEqual(app.staticTexts["layout-value"].label, "list")
+        XCTAssertTrue(app.staticTexts["unavailable"].exists)
+    }
     @MainActor func testNativeActionsDisabledStateAndCardInteraction() {
         let app = XCUIApplication()
         app.launch()

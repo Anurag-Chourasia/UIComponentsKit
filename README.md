@@ -49,3 +49,10 @@ MIT — Copyright (c) 2026 Anurag Chourasia.
 - `CenteredProgressOverlay`: native indeterminate progress between flexible spacers over a caller backdrop. Width, presentation condition, blocking behavior and safe areas stay caller-owned.
 
 These APIs extract existing app compositions without copying view models. They do not repair pre-existing app accessibility labels or fixed field heights. New screens should use meaningful field labels and growing text geometry; consumers preserve their existing contracts during migration.
+
+
+### Catalog tiles
+
+`CatalogTile` renders the same artwork/details/accessory slots as a horizontal list row or a vertical grid tile. Use `.plainRow` to retain native list decoration, `.compactGrid(accessibility:)` for compact media tiles, or the flexible standard metrics for book cards. Callers retain image loading, models, navigation and favorite/bookmark state. Independent native buttons are never nested inside a shared enclosing button.
+
+`CatalogLayout` persists as `list`/`grid`; `resolved(isAccessibilitySize:)` falls back to list without destroying the saved preference. `CatalogLayoutMenu` accepts localized labels and explains unavailable grid selection through a caller-owned callback.
