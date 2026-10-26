@@ -76,8 +76,11 @@ public struct CatalogLayoutMenu: View {
         Menu {
             ForEach(CatalogLayout.allCases) { option in
                 Button {
-                    if option == .grid && isAccessibilitySize { onGridUnavailable() }
-                    else { onSelect(option) }
+                    if option == .grid && isAccessibilitySize {
+                        onGridUnavailable()
+                    } else {
+                        onSelect(option)
+                    }
                 } label: {
                     Label(titleForLayout(option), systemImage: selection == option ? "checkmark" : option.icon)
                 }

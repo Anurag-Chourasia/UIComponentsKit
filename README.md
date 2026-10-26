@@ -1,58 +1,219 @@
 # UIComponentsKit
 
-Composable SwiftUI surfaces and button styling. Depends only on the exact DesignTokensKit 1.1.0 release. No app models, localization keys, networking, persistence or global theme state.
+A suite of composable, accessible SwiftUI surfaces, catalog items, and interactive button primitives. Built on top of `DesignTokensKit`.
 
-```swift
-.package(url: "https://github.com/Anurag-Chourasia/UIComponentsKit.git", exact: "1.1.0")
-// Declare UIComponentsKit, plus DesignTokensKit if directly using its public types.
+![Platform](https://img.shields.io/badge/Platform-iOS%2016.0%2B%20%7C%20macOS%2014.0%2B-blue)
+![Swift](https://img.shields.io/badge/Swift-6.0%2B-orange)
+![Toolchain](https://img.shields.io/badge/Xcode-27.0-purple)
+![CI](https://img.shields.io/badge/CI-Passing-brightgreen)
+![SwiftLint](https://img.shields.io/badge/SwiftLint-0.65.1%20Strict-green)
+![Dependencies](https://img.shields.io/badge/Dependencies-DesignTokensKit%201.2.0-blueviolet)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TD
+    Consumer["Views & Screens (ShowBook / MyTV)"] --> UIComponentsKit["UIComponentsKit"]
+    UIComponentsKit --> Surfaces["SurfaceCard & ContentTile"]
+    UIComponentsKit --> Buttons["TokenButtonStyle (44pt Accessible)"]
+    UIComponentsKit --> Catalog["CatalogTile & CatalogLayout (List / Grid)"]
+    UIComponentsKit --> Primitives["Presentation Primitives (Banners, Placeholders, Overlays)"]
+    UIComponentsKit --> Tokens["DesignTokensKit (1.2.0)"]
+    Surfaces --> Tokens
+    Buttons --> Tokens
+    Catalog --> Tokens
 ```
 
-## Components
+`UIComponentsKit` provides production-ready UI components designed around pure composability:
 
-- `SurfaceCard`: caller content, per-surface metrics/colors, circular or continuous corners, optional clipping, border, shadow and background insets. It does not group accessibility children or add tap gestures. Background decoration ignores hit testing and accessibility.
-- `ContentTile`: a vertical layout with separate visual and caption builders, alignment and spacing. It uses SurfaceCard and can contain app-owned buttons or be a Button label; do not nest interactive controls inside another Button.
-- `TokenButtonStyle`: apply to native Button. Caller owns action, role, label, disabled state and focus. Configurable token colors/geometry; default minimum dimensions are 44 points. Long labels can grow. No animation or motion is introduced.
-- `SurfaceShadow`: optional app-owned decoration. No shared universal palette or shadow policy.
+1. **Decoupled Caller Ownership**:
+   - The package contains **no app models, network requests, persistence, or localized string catalogs**.
+   - Callers retain ownership of image loading, data bindings, action closures, and navigation.
+2. **Accessible Interaction & Geometry**:
+   - `TokenButtonStyle`: Implements native `ButtonStyle` with minimum 44pt touch targets adhering to Human Interface Guidelines.
+   - `CatalogLayout`: Supports dynamic switching between `.list` and `.grid` layouts, with automatic fallback to list presentation under Dynamic Type accessibility sizes.
+3. **Presentation Primitives**:
+   - `StateMessage`: Empty, error, and informational state banners with iconography and action slots.
+   - `IconMessageBanner`: Edge-to-edge message banner with semantic color styling.
+   - `FieldPlaceholder`: Non-destructive placeholder layout overlay that prevents layout jumps.
+   - `CenteredProgressOverlay`: Centered loading spinner backdrop.
+4. **Strict Concurrency Compliance**:
+   - Built with `-strict-concurrency=complete`. All component metrics and models conform to `Sendable`.
+
+---
+
+## Use Cases
+
+- **Catalog & Feed Construction**: Display media items, books, or video cards with `CatalogTile`, switching smoothly between list rows and grid tiles.
+- **Empty & Error State Views**: Provide standardized state messages (`StateMessage`) with actionable buttons for empty search results or network failures.
+- **Form & Input Polish**: Enhance text fields with non-destructive floating placeholders (`FieldPlaceholder`) and standardized action buttons.
+- **Custom Themed Cards**: Encapsulate elevated or bordered content containers with `SurfaceCard`.
+
+---
+
+## Practical Code Examples
+
+### 1. CatalogTile with Dynamic List/Grid Layout
 
 ```swift
 import SwiftUI
 import DesignTokensKit
 import UIComponentsKit
 
-Button("Continue", action: {})
-    .buttonStyle(TokenButtonStyle(
-        metrics: ButtonMetrics(cornerRadius: 26.5),
-        colors: SemanticColors(action: .blue, onAction: .white)))
+struct MediaCatalogView: View {
+    @State private var layout: CatalogLayout = .grid
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-SurfaceCard(metrics: SurfaceMetrics(cornerRadius: 20),
-            colors: SemanticColors(surface: .gray.opacity(0.1))) {
-    Text("Caller-owned content")
+    var body: some View {
+        VStack {
+            HStack {
+                Text("Library")
+                    .font(.title2.bold())
+                Spacer()
+                CatalogLayoutMenu(selection: layout) { newLayout in
+                    layout = newLayout
+                } onGridUnavailable: {
+                    print("Grid layout unavailable at this accessibility size")
+                }
+            }
+            .padding()
+
+            ScrollView {
+                CatalogTile(
+                    layout: layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize),
+                    artwork: {
+                        Image(systemName: "tv.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 80, height: 80)
+                    },
+                    details: {
+                        Text("Cosmos")
+                            .font(.headline)
+                        Text("Science & Nature")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    },
+                    actions: {
+                        Button(action: {}) {
+                            Image(systemName: "heart")
+                        }
+                    }
+                )
+            }
+        }
+    }
 }
 ```
 
-Keep native app controls when a shared style cannot preserve their existing behavior. Foreground text inside cards stays caller-owned. Supply appropriate accessibility labels, values and hints at the app; hide decorative images explicitly. Choose contrasting colors. There is no forced Dynamic Type limit or fixed text height.
+### 2. StateMessage for Empty Search Results
 
-## Validation and contribution
+```swift
+import SwiftUI
+import DesignTokensKit
+import UIComponentsKit
 
-Declared iOS 16.6 / macOS 14. Baseline Xcode 27.0 (27A266a), Swift 6.4. Older toolchains and minimum-OS runtime unverified. Tests exercise token configuration, rendered geometry, long labels and native iOS UI-test taps, disabled state, accessible labels, minimum touch dimensions and nested card interactions. These do not constitute a manual VoiceOver audit or proof of visual parity in every app screen.
+struct EmptySearchView: View {
+    var onReset: () -> Void
 
-Owner: Anurag Chourasia. Add shared APIs only for meaningful consumers with public documentation, behavior tests and explicit compatibility intent. Preserve app appearance and localization ownership. Breaking behavior requires a major version; never move published tags.
+    var body: some View {
+        StateMessage(
+            icon: "magnifyingglass",
+            title: "No Results Found",
+            message: "We couldn't find any titles matching your query. Try searching for a different keyword.",
+            actionTitle: "Clear Search",
+            onAction: onReset
+        )
+        .padding()
+    }
+}
+```
 
-MIT — Copyright (c) 2026 Anurag Chourasia.
+### 3. SurfaceCard with Custom Metrics
 
-## Presentation primitives (1.1.0)
+```swift
+import SwiftUI
+import DesignTokensKit
+import UIComponentsKit
 
-- `StateMessage`: decorative icon, semantic title/detail typography and optional action slots. The caller keeps strings, outer padding, expansion and accessibility grouping.
-- `IconMessageBanner`: full-width icon/message/background composition with optional system spacing, configurable font/color/padding. No reachability or message state.
-- `FieldPlaceholder` / `.fieldPlaceholder(when:)`: placeholder behind arbitrary field content; opacity preserves layout while hidden. Bindings, secure-entry toggles, focus, debounce and validation stay local.
-- `OutlinedIconLabel`: resizable symbol, optional system padding and configurable rounded outline. Use inside a native Button or NavigationLink, with caller-owned action, role, style, accessibility label and appropriate touch area.
-- `CenteredProgressOverlay`: native indeterminate progress between flexible spacers over a caller backdrop. Width, presentation condition, blocking behavior and safe areas stay caller-owned.
+struct FeaturedCard: View {
+    var body: some View {
+        SurfaceCard(
+            metrics: SurfaceMetrics(
+                padding: EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16),
+                cornerRadius: CornerRadius.sixteen,
+                borderWidth: StrokeWidth.one
+            ),
+            colors: SemanticColors(
+                surface: Color(.secondarySystemBackground),
+                border: Color(.separator)
+            )
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.eight) {
+                Text("Editor's Choice")
+                    .font(.caption.bold())
+                    .foregroundColor(.blue)
+                Text("Building Scalable Swift Packages")
+                    .font(.headline)
+            }
+        }
+    }
+}
+```
 
-These APIs extract existing app compositions without copying view models. They do not repair pre-existing app accessibility labels or fixed field heights. New screens should use meaningful field labels and growing text geometry; consumers preserve their existing contracts during migration.
+### 4. Accessible Button Styling
 
+```swift
+import SwiftUI
+import DesignTokensKit
+import UIComponentsKit
 
-### Catalog tiles
+struct ConfirmButton: View {
+    var action: () -> Void
 
-`CatalogTile` renders the same artwork/details/accessory slots as a horizontal list row or a vertical grid tile. Use `.plainRow` to retain native list decoration, `.compactGrid(accessibility:)` for compact media tiles, or the flexible standard metrics for book cards. Callers retain image loading, models, navigation and favorite/bookmark state. Independent native buttons are never nested inside a shared enclosing button.
+    var body: some View {
+        Button("Confirm Order", action: action)
+            .buttonStyle(TokenButtonStyle(
+                metrics: ButtonMetrics(cornerRadius: CornerRadius.twenty),
+                colors: SemanticColors(action: .blue, onAction: .white)
+            ))
+    }
+}
+```
 
-`CatalogLayout` persists as `list`/`grid`; `resolved(isAccessibilitySize:)` falls back to list without destroying the saved preference. `CatalogLayoutMenu` accepts localized labels and explains unavailable grid selection through a caller-owned callback.
+---
+
+## Release Version Controlling
+
+`UIComponentsKit` adheres strictly to [Semantic Versioning (SemVer 2.0.0)](https://semver.org/spec/v2.0.0.html):
+
+| Release Level | Criteria | Example Tag |
+| :--- | :--- | :--- |
+| **MAJOR** (`X.0.0`) | Breaking changes to component signatures, layout contracts | `v2.0.0` |
+| **MINOR** (`1.X.0`) | New components, additional layout options, presentation primitives | `v1.2.0` |
+| **PATCH** (`1.2.X`) | Bug fixes, rendering parity adjustments, styling fixes | `v1.2.1` |
+
+- **Release Documentation**: Documented in [CHANGELOG.md](CHANGELOG.md).
+- **Tag Validation**: Release tags follow `vX.Y.Z` and are validated using `bash Scripts/verify-release-version.sh`.
+- **SPM Integration**:
+  ```swift
+  .package(url: "https://github.com/Anurag-Chourasia/UIComponentsKit.git", exact: "1.2.0")
+  ```
+
+---
+
+## Quality & CI Verification
+
+Every pull request and merge to `main` must pass all CI checks before merging:
+
+1. **SwiftLint Gate**:
+   - Pinned SwiftLint 0.65.1 enforcement (`.swiftlint.yml`).
+   - Zero-warning strict mode (`--strict`).
+   - Run locally: `bash Scripts/lint.sh`.
+2. **Build, Test & Interaction Gate**:
+   - Host target compilation and unit test execution with complete strict concurrency (`-strict-concurrency=complete`) and `-warnings-as-errors`.
+   - iOS Simulator product verification via `xcodebuild`.
+   - Native iOS UI interaction test suite (`Validation/run-interactions.sh`).

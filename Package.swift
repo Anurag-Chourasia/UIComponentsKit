@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "UIComponentsKit",
-    platforms: [.iOS("16.6"), .macOS(.v14)],
+    platforms: [.iOS(.v16), .macOS(.v14)],
     products: [.library(name: "UIComponentsKit", targets: ["UIComponentsKit"])],
     dependencies: [.package(url: "https://github.com/Anurag-Chourasia/DesignTokensKit.git", exact: "1.2.0")],
     targets: [
