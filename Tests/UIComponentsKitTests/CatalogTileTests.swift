@@ -6,7 +6,18 @@ import DesignTokensKit
 @MainActor final class CatalogTileTests: XCTestCase {
     private func pixels<V: View>(_ view: V) throws -> Data {
         let image = try XCTUnwrap(ImageRenderer(content: view).cgImage)
-        return try XCTUnwrap(image.dataProvider?.data) as Data
+        // ImageRenderer may leave row padding/unused channels unspecified. Compare
+        // a defined RGBA bitmap rather than its implementation-specific backing bytes.
+        let width = image.width, height = image.height
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        return try bytes.withUnsafeMutableBytes { buffer in
+            let context = try XCTUnwrap(CGContext(data: buffer.baseAddress, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return Data(buffer)
+        }
     }
     func testAccessibilityResolutionDoesNotDestroySavedPreference() {
         let saved = CatalogLayout.grid
@@ -35,7 +46,10 @@ import DesignTokensKit
                 artwork
             } details: { title } accessory: { accessory }
             for scheme in [ColorScheme.light, .dark] {
-                XCTAssertEqual(try pixels(old.environment(\.colorScheme, scheme)), try pixels(shared.environment(\.colorScheme, scheme)))
+                let expected = try pixels(old.environment(\.colorScheme, scheme))
+                let actual = try pixels(shared.environment(\.colorScheme, scheme))
+                let deltas = zip(expected, actual).map { abs(Int($0) - Int($1)) }
+                XCTAssertEqual(expected, actual, "accessible=\(accessible) scheme=\(scheme) changed=\(deltas.filter { $0 > 0 }.count) max=\(deltas.max() ?? 0)")
             }
         }
     }
