@@ -61,6 +61,11 @@ jobs:
       - name: Validate manifest
         run: xcrun swift package dump-package
 
+      - name: Configure private dependencies
+        env:
+          DESIGNTOKENSKIT_DEPLOY_KEY: ${{ secrets.DESIGNTOKENSKIT_DEPLOY_KEY }}
+        run: bash Scripts/configure-private-dependencies.sh
+
       - name: Resolve package
         run: xcrun swift package resolve
 
@@ -91,3 +96,7 @@ jobs:
       - name: Test native iOS interactions
         timeout-minutes: 15
         run: bash Validation/run-interactions.sh
+
+      - name: Remove dependency credentials
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/shared-kit-credentials"
