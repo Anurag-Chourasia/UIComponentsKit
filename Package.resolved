@@ -1,13 +1,13 @@
 {
-  "originHash" : "1ced9edce9f833c4961c18d6cf517d5eafae1649ca7d48c8712eb7ad395285fc",
+  "originHash" : "376bf011d9eab6ae4008a26171b9bd3c126d445f1ec6ad99f5c8ad5d295ac56a",
   "pins" : [
     {
       "identity" : "designtokenskit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Anurag-Chourasia/DesignTokensKit.git",
       "state" : {
-        "revision" : "231cdc284f9a7106e601bba6080ae0663a96f3ae",
-        "version" : "1.4.0"
+        "revision" : "34ef5dce0be48c252e513dd7c9478e99f659e9ce",
+        "version" : "1.8.0"
       }
     }
   ],

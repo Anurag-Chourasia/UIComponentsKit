@@ -43,6 +43,49 @@ extension StateMessage where Actions == EmptyView {
         self.init(spacing: spacing, typography: typography, detailColor: detailColor,
                   icon: icon, title: title, detail: detail, actions: { EmptyView() })
     }
+
+    public init(
+        spacing: KeyPath<SpacingTheme, CGFloat>,
+        detailColor: KeyPath<ColorTheme, Color> = \.secondary,
+        @ViewBuilder icon: () -> Icon,
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder detail: () -> Detail,
+        spacingTheme: SpacingTheme = .default,
+        colorTheme: ColorTheme = .default
+    ) {
+        self.init(
+            spacing: spacingTheme[keyPath: spacing],
+            typography: MessageTypography(),
+            detailColor: colorTheme[keyPath: detailColor],
+            icon: icon,
+            title: title,
+            detail: detail,
+            actions: { EmptyView() }
+        )
+    }
+}
+
+extension StateMessage {
+    public init(
+        spacing: KeyPath<SpacingTheme, CGFloat>,
+        detailColor: KeyPath<ColorTheme, Color> = \.secondary,
+        @ViewBuilder icon: () -> Icon,
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder detail: () -> Detail,
+        @ViewBuilder actions: () -> Actions,
+        spacingTheme: SpacingTheme = .default,
+        colorTheme: ColorTheme = .default
+    ) {
+        self.init(
+            spacing: spacingTheme[keyPath: spacing],
+            typography: MessageTypography(),
+            detailColor: colorTheme[keyPath: detailColor],
+            icon: icon,
+            title: title,
+            detail: detail,
+            actions: actions
+        )
+    }
 }
 
 /// Full-width notice composition. Decorative icon is hidden; callers own message semantics.
@@ -144,5 +187,24 @@ public struct CenteredProgressOverlay<Label: View, Background: View>: View {
         }
         .frame(width: width)
         .background(background)
+    }
+}
+
+extension CenteredProgressOverlay where Label == EmptyView {
+    public init(
+        width: KeyPath<DesignMetricTheme, CGFloat>? = nil,
+        background: KeyPath<ColorTheme, Color>,
+        opacity: KeyPath<OpacityTheme, Double>? = nil,
+        metricTheme: DesignMetricTheme = .default,
+        colorTheme: ColorTheme = .default,
+        opacityTheme: OpacityTheme = .default
+    ) where Background == Color {
+        let base = colorTheme[keyPath: background]
+        let resolved = opacity != nil ? base.opacity(opacityTheme[keyPath: opacity!]) : base
+        self.init(
+            width: width.map { metricTheme[keyPath: $0] },
+            label: { EmptyView() },
+            background: { resolved }
+        )
     }
 }
