@@ -66,4 +66,24 @@ final class ComponentsTests: XCTestCase {
         let view = Text("Hello").accessibilityIdentifier(.developerSupport)
         XCTAssertNotNil(view)
     }
+
+    func testAppAppearanceAndStandardComponents() {
+        XCTAssertEqual(AppAppearance.allCases.count, 3)
+        XCTAssertEqual(AppAppearance.system.rawValue, "system")
+        XCTAssertEqual(AppAppearance.light.rawValue, "light")
+        XCTAssertEqual(AppAppearance.dark.rawValue, "dark")
+        XCTAssertNil(AppAppearance.system.colorScheme)
+        XCTAssertEqual(AppAppearance.light.colorScheme, .light)
+        XCTAssertEqual(AppAppearance.dark.colorScheme, .dark)
+
+        let banner = OfflineBannerView(message: "Offline Mode")
+        XCTAssertNotNil(banner)
+
+        let emptyState = EmptyStateMessageView(
+            symbol: \.tray,
+            title: "No Items",
+            message: "Check back later"
+        )
+        XCTAssertNotNil(emptyState)
+    }
 }
