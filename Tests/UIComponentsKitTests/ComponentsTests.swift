@@ -46,4 +46,24 @@ final class ComponentsTests: XCTestCase {
         XCTAssertGreaterThan(image.height, 44)
     }
 
+    func testComponentIdentifierPropertiesAndModifier() {
+        let id: ComponentIdentifier = .developerSupport
+        XCTAssertEqual(id.rawValue, "developer-support")
+        XCTAssertEqual(id.description, "developer-support")
+
+        let alias: A11yID = .screenTools
+        XCTAssertEqual(alias.rawValue, "screen-tools")
+
+        let literal: ComponentIdentifier = "custom-id"
+        XCTAssertEqual(literal.rawValue, "custom-id")
+
+        let dynamicBook = ComponentIdentifier.bookTile("grid")
+        XCTAssertEqual(dynamicBook.rawValue, "book-tile-grid")
+
+        let dynamicAuth = ComponentIdentifier.authProvider("google")
+        XCTAssertEqual(dynamicAuth.rawValue, "auth-provider-google")
+
+        let view = Text("Hello").accessibilityIdentifier(.developerSupport)
+        XCTAssertNotNil(view)
+    }
 }
