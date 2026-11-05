@@ -1,8 +1,16 @@
 """Generate a disposable native UI-test harness from versioned sources."""
-import plistlib,sys,shutil
+import json,plistlib,sys,shutil
 from pathlib import Path
 from xml.sax.saxutils import escape
 package=Path(__file__).resolve().parents[1]
+resolved_path = package / 'Package.resolved'
+if not resolved_path.exists():
+ raise SystemExit('Run swift package resolve before generating the interaction harness.')
+pins = json.loads(resolved_path.read_text()).get('pins', [])
+state = next((pin['state'] for pin in pins if pin['identity'].lower() == 'designtokenskit'), None)
+if state is None or not state.get('version'):
+ raise SystemExit('The interaction harness requires a resolved DesignTokensKit release version.')
+token_version = state['version']
 root=Path(sys.argv[1]).resolve();root.mkdir(parents=True,exist_ok=True)
 project=root/'Interaction.xcodeproj';project.mkdir(exist_ok=True)
 objects={};n=0
@@ -15,7 +23,7 @@ testProduct=obj('PBXFileReference',explicitFileType='wrapper.cfbundle',path='Int
 products=obj('PBXGroup',children=[appProduct,testProduct],name='Products',sourceTree='<group>')
 group=obj('PBXGroup',children=[appfile,testfile,products],sourceTree='<group>')
 ref=obj('XCLocalSwiftPackageReference',relativePath=str(package))
-tokenref=obj('XCRemoteSwiftPackageReference',repositoryURL='https://github.com/Anurag-Chourasia/DesignTokensKit.git',requirement=dict(kind='exactVersion',version='1.2.0'))
+tokenref=obj('XCRemoteSwiftPackageReference',repositoryURL='https://github.com/Anurag-Chourasia/DesignTokensKit.git',requirement=dict(kind='exactVersion',version=token_version))
 deps=[obj('XCSwiftPackageProductDependency',productName=name,package=r) for name,r in [('UIComponentsKit',ref),('DesignTokensKit',tokenref)]]
 def configs(bundle,testing=False):
  configs=[]

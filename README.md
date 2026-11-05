@@ -217,3 +217,9 @@ Every pull request and merge to `main` must pass all CI checks before merging:
    - Host target compilation and unit test execution with complete strict concurrency (`-strict-concurrency=complete`) and `-warnings-as-errors`.
    - iOS Simulator product verification via `xcodebuild`.
    - Native iOS UI interaction test suite (`Validation/run-interactions.sh`).
+
+## Shared application controls
+
+`AppearanceMenu` takes localized system/light/dark labels and an optional selection-feedback closure. Appearance state uses the existing `appAppearance` preference and `appAppearance()` applies it to the window hierarchy. Hosts retain branding and navigation.
+
+`LoadingOverlayView(message:)`, `EmptyStateMessageView`, and `OfflineBannerView` provide shared state presentation. `SelectionToggleButton` accepts controlled selection state, localized action labels, and host-owned artwork/action closures; it does not own persistence, domain models, or haptic policy.
