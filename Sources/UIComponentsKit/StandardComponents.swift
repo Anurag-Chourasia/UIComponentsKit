@@ -61,18 +61,12 @@ public struct EmptyStateMessageView<Actions: View>: View {
             spacing: \.sixteen,
             icon: {
                 Image(symbol)
-                    .font(.system(size: 48))
-                    .foregroundColor(\.secondary)
             },
             title: {
                 Text(title)
-                    .font(\.headline)
-                    .foregroundColor(\.primary)
             },
             detail: {
                 Text(message)
-                    .font(\.subheadline)
-                    .foregroundColor(\.secondary)
             },
             actions: {
                 actions

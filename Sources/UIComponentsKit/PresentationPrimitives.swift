@@ -200,7 +200,7 @@ extension CenteredProgressOverlay where Label == EmptyView {
         opacityTheme: OpacityTheme = .default
     ) where Background == Color {
         let base = colorTheme[keyPath: background]
-        let resolved = opacity != nil ? base.opacity(opacityTheme[keyPath: opacity!]) : base
+        let resolved = opacity.map { base.opacity(opacityTheme[keyPath: $0]) } ?? base
         self.init(
             width: width.map { metricTheme[keyPath: $0] },
             label: { EmptyView() },
