@@ -223,3 +223,13 @@ Every pull request and merge to `main` must pass all CI checks before merging:
 `AppearanceMenu` takes localized system/light/dark labels and an optional selection-feedback closure. Appearance state uses the existing `appAppearance` preference and `appAppearance()` applies it to the window hierarchy. Hosts retain branding and navigation.
 
 `LoadingOverlayView(message:)`, `EmptyStateMessageView`, and `OfflineBannerView` provide shared state presentation. `SelectionToggleButton` accepts controlled selection state, localized action labels, and host-owned artwork/action closures; it does not own persistence, domain models, or haptic policy.
+
+## Architecture guard tooling — IOS-56 initial increment
+
+`Scripts/check_architecture.py` is the initial cross-workspace lexical scanner and coverage inventory for the approved IOS-55 contract. It is tooling, not a new runtime dependency. Run its regressions with `python3 -m unittest discover -s Scripts/tests -p test_architecture_guard.py -v`.
+
+From the Projects workspace, run `python3 UIComponentsKit/Scripts/check_architecture.py --workspace-root . --output /tmp/architecture-report.json`. `--scope UIComponentsKit` explicitly selects a subset; without it every policy root is required. Missing coverage exits 2; findings exit 1. Existing findings are not a passing baseline and are not suppressed. Generated Swift and color asset catalogs are included.
+
+The policy JSON and report state current limits. This increment checks direct/ternary symbol arguments, direct accessibility literals, inline color constructors, asset ownership and selected forbidden imports. It does not yet validate registered identifier namespaces/indirect constructors (IOS-64), full symbol data flow, fixture-pixel exceptions, generator provenance, or production/test product linkage. SnapshotTestingKit is the local checkout inventory; active SnapshotTestKit linkage still needs inspection. Existing app token guards stay enabled. CI runs scanner regressions; migration-aware ecosystem enforcement remains unfinished under IOS-56.
+
+The canonical contract, decisions and changing architecture maps remain in the workspace `Docs/IOS_PORTFOLIO_ARCHITECTURE.md` and its linked Notion page. IOS-55 approves the recorded revision; future architecture changes require a dated decision update and corresponding rule/test changes, not a claim that today's contract is immutable.
