@@ -31,6 +31,7 @@ public struct AppearanceMenu: View {
                 } label: {
                     if selection == appearance { Label(label(for: appearance), \.checkmark) } else { Text(label(for: appearance)) }
                 }
+                .accessibilityAddTraits(selection == appearance ? .isSelected : [])
             }
         } label: {
             if iconOnly { Image(\.circleLefthalfFilled) } else { Label(title, \.circleLefthalfFilled) }
