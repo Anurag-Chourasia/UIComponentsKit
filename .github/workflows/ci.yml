@@ -16,6 +16,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  architecture-scanner-tests:
+    name: Architecture scanner regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify architecture detection and coverage failures
+        run: python3 -m unittest discover -s Scripts/tests -p test_architecture_guard.py -v
+
   swiftlint:
     name: SwiftLint
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
