@@ -12,7 +12,7 @@
     "UIComponentsKit": "UIComponentsKit/Sources",
     "DeveloperProfileKit": "DeveloperProfileKit/Sources",
     "AppStubData": "AppStubData/Sources",
-    "SnapshotTestingKit": "SnapshotTestingKit/Sources"
+    "SnapshotTestKit": "SnapshotTestKit/Sources"
   },
   "coverage_limits": [
     "Lexical Swift checks, not a Swift compiler or whole-program data-flow analysis.",
