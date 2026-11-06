@@ -119,3 +119,12 @@ public struct CatalogLayoutMenu: View {
         .accessibilityValue(titleForLayout(selection))
     }
 }
+
+public extension CatalogTileMetrics {
+    /// Component preset recipe for compact catalog media grids with accessibility support.
+    static func compactGridRecipe(accessibility: Bool) -> Self {
+        Self(surface: SurfaceMetrics(padding: EdgeInsets(), cornerRadius: CornerRadius.twenty),
+             width: accessibility ? 160 : 120, minimumHeight: accessibility ? 170 : 120,
+             contentWidth: accessibility ? 150 : 110, contentMinHeight: accessibility ? 150 : 110)
+    }
+}
