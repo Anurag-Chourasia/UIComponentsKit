@@ -54,6 +54,21 @@ flowchart TD
 
 ---
 
+## Catalog Layout Recipes & Reusable Control Governance (IOS-62, IOS-67)
+
+### 1. Catalog Layout Recipes (IOS-62)
+- `CatalogTileMetrics.compactGridRecipe(accessibility:)`: Relocated from primitive tokens to `UIComponentsKit` as a component preset recipe. Retains semantic dimensions (`120x120` standard, `160x170` accessibility) and corner radius tokens (`CornerRadius.twenty`).
+- `CatalogLayout.resolved(isAccessibilitySize:)`: Automatically adapts grid presentations to list presentation under Dynamic Type accessibility environments.
+
+### 2. Reusable Host Control Governance & Decisions (IOS-67)
+- **SideActionIconView** (*Motivation Daily*): **Keep Local**. Strongly bound to `MotivationStrings`, quote viewer gesture handling, and photo export overlay lifecycle. Extraction into a shared component would add premature abstraction for a single-host vertical interaction.
+- **BookCoverPreview & BookItem** (*ShowBook*): **Keep Local**. Domain-specific Core Data models and book metadata belong in the host application; generic container layout is provided by `CatalogTile` and `SurfaceCard`.
+- **ChannelLogo & StreamRow** (*MyTV*): **Keep Local**. Encapsulates AVPlayer stream playback URLs, IPTV transport states, and aspect-ratio constraints.
+- **CatalogLayoutMenu & AppearanceMenu**: **Shared in UIComponentsKit**. Uniformly adopted across all three host applications.
+- **SelectionToggleButton & LoadingOverlayView**: **Shared in UIComponentsKit**. Reusable interactive selection and modal loading indicators.
+
+---
+
 ## Practical Code Examples
 
 ### 1. CatalogTile with Dynamic List/Grid Layout
