@@ -85,6 +85,8 @@ private struct CatalogDemo: View {
                 Text(layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize).rawValue).accessibilityIdentifier("layout-value")
                 CatalogLayoutMenu(selection: layout.resolved(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize),
                                   isAccessibilitySize: dynamicTypeSize.isAccessibilitySize,
+                                  title: "Layout",
+                                  titleForLayout: { $0 == .list ? "List" : "Grid" },
                                   onSelect: { layout = $0 }, onGridUnavailable: { unavailable = true })
                     .accessibilityIdentifier("layout-menu")
                 if unavailable { Text("List required").accessibilityIdentifier("unavailable") }

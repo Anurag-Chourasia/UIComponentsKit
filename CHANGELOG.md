@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0
+
+- Centralize `CatalogLayoutMenu` copy ownership through injected localization (`init(selection:isAccessibilitySize:resolving:onSelect:onGridUnavailable:)` and explicit `title` / `titleForLayout`) with deterministic `common.layout.*` key-echo standalone fallback (`IOS-59`).
+
 ## 1.7.0
 
 - Define and enforce the `ComponentIdentifier` (`A11yID`) validation contract with explicit ownership namespaces (`Namespace.shared`, `.auth`, `.showBook`, `.myTV`, `.motivationDaily`), typed dynamic builders (`bookTile(_:)`, `authProvider(_:)`), failable `init?(rawValue:)` / `init?(validating:namespace:)`, and removal of unvalidated `ExpressibleByStringLiteral` conformance.

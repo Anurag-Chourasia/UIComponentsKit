@@ -65,11 +65,25 @@ public struct CatalogLayoutMenu: View {
     private let onGridUnavailable: () -> Void
 
     public init(selection: CatalogLayout, isAccessibilitySize: Bool = false,
-                title: String = "Layout", titleForLayout: @escaping (CatalogLayout) -> String = { $0 == .list ? "List" : "Grid" },
+                title: String = "common.layout.title",
+                titleForLayout: @escaping (CatalogLayout) -> String = { "common.layout.\($0.rawValue)" },
                 onSelect: @escaping (CatalogLayout) -> Void, onGridUnavailable: @escaping () -> Void = {}) {
         self.selection = selection; self.isAccessibilitySize = isAccessibilitySize
         self.title = title; self.titleForLayout = titleForLayout
         self.onSelect = onSelect; self.onGridUnavailable = onGridUnavailable
+    }
+
+    public init(selection: CatalogLayout, isAccessibilitySize: Bool = false,
+                resolving resolve: @escaping (String) -> String,
+                onSelect: @escaping (CatalogLayout) -> Void, onGridUnavailable: @escaping () -> Void = {}) {
+        self.init(
+            selection: selection,
+            isAccessibilitySize: isAccessibilitySize,
+            title: resolve("common.layout.title"),
+            titleForLayout: { resolve("common.layout.\($0.rawValue)") },
+            onSelect: onSelect,
+            onGridUnavailable: onGridUnavailable
+        )
     }
 
     public var body: some View {

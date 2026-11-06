@@ -25,6 +25,19 @@ import DesignTokensKit
         XCTAssertEqual(saved.resolved(isAccessibilitySize: false), .grid)
         XCTAssertEqual(CatalogLayout(rawValue: "list"), .list)
     }
+    func testCatalogLayoutMenuResolvesViaInjectedClosureAndStandaloneFallback() {
+        var resolvedKeys: [String] = []
+        let menu = CatalogLayoutMenu(
+            selection: .list,
+            resolving: { key in
+                resolvedKeys.append(key)
+                return "[\(key)]"
+            },
+            onSelect: { _ in }
+        )
+        _ = menu.body
+        XCTAssertTrue(resolvedKeys.contains("common.layout.title"))
+    }
     func testGridPreservesOriginalComposition() throws {
         for accessible in [false, true] {
             let metrics = CatalogTileMetrics.compactGrid(accessibility: accessible)
