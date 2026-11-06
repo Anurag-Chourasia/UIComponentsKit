@@ -1,5 +1,5 @@
 {
-  "revision": "IOS-55-2026-11-05",
+  "revision": "IOS-64-2026-11-06",
   "scopes": {
     "ShowBook": "ShowBook/ShowBook",
     "MyTV": "MyTV/myTV",
@@ -18,7 +18,7 @@
     "Lexical Swift checks, not a Swift compiler or whole-program data-flow analysis.",
     "String interpolation and aliases may require semantic follow-up; no AST guarantee is claimed.",
     "SnapshotTestingKit inventories the local checkout; active SnapshotTestKit target/linkage inspection is pending.",
-    "Identifier namespace and indirect-constructor validation await IOS-64.",
+    "ComponentIdentifier validates registered members, namespace format, and direct/indirect construction lexically; arbitrary cross-module runtime aliases are not resolved by static lexical scanning.",
     "Generated Swift and color assets are scanned; no implicit generated-file or fixture-pixel exclusion.",
     "Fixture pixel exceptions, generator provenance and production/test product linkage remain follow-up work.",
     "Computed-property symbol returns, font/spacing recipes and arbitrary aliases are not yet resolved."
