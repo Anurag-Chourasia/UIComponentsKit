@@ -4,7 +4,18 @@ import DesignTokensKit
 public enum CatalogLayout: String, CaseIterable, Identifiable, Sendable {
     case list, grid
     public var id: String { rawValue }
-    public var icon: String { self == .list ? "list.bullet" : "square.grid.2x2" }
+    public var symbolKeyPath: KeyPath<SymbolTheme, AppSymbol> {
+        switch self {
+        case .list: return \.listBullet
+        case .grid: return \.squareGrid2x2
+        }
+    }
+    public var symbol: AppSymbol {
+        SymbolTheme.default[keyPath: symbolKeyPath]
+    }
+    public var icon: String {
+        symbol.systemName
+    }
     public func resolved(isAccessibilitySize: Bool) -> Self { isAccessibilitySize ? .list : self }
 }
 
@@ -96,11 +107,14 @@ public struct CatalogLayoutMenu: View {
                         onSelect(option)
                     }
                 } label: {
-                    Label(titleForLayout(option), systemImage: selection == option ? "checkmark" : option.icon)
+                    Label(
+                        titleForLayout(option),
+                        systemImage: selection == option ? \.checkmark : option.symbolKeyPath
+                    )
                 }
             }
         } label: {
-            Label(title, systemImage: selection.icon)
+            Label(title, systemImage: selection.symbolKeyPath)
         }
         .accessibilityValue(titleForLayout(selection))
     }
