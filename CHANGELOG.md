@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0
+
+- Define and enforce the `ComponentIdentifier` (`A11yID`) validation contract with explicit ownership namespaces (`Namespace.shared`, `.auth`, `.showBook`, `.myTV`, `.motivationDaily`), typed dynamic builders (`bookTile(_:)`, `authProvider(_:)`), failable `init?(rawValue:)` / `init?(validating:namespace:)`, and removal of unvalidated `ExpressibleByStringLiteral` conformance.
+- Align `AuthKit` `ComponentIdentifier` values (`auth.email`, `auth.password`, `auth.confirmPassword`, `auth.forgotPassword`, `auth.switchMode`, `auth.account`, `auth.accountEmail`, `auth.accountResetPassword`, `auth.signOut`, `auth.deleteAccount`, `auth.provider.<id>`) with `AuthKitUI` runtime accessibility identifiers.
+- Extend `Scripts/check_architecture.py` and `Scripts/tests/test_architecture_guard.py` to detect indirect `ComponentIdentifier`/`A11yID` string construction, unknown/unregistered identifier members, and invalid identifier formats.
+
 ## 1.2.0
 
 - Add CatalogTile with shared list/grid composition and independent artwork, details, and action slots.

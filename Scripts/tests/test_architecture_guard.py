@@ -37,8 +37,33 @@ class ArchitectureGuardTests(unittest.TestCase):
         // Image(systemName: "wifi.slash")
         /* nested /* UIColor(red: 1) */ Image(systemName: "wifi.slash") */
         Image(\.wifiSlash)
-        view.accessibilityIdentifier(.favoriteButton)'''
+        view.accessibilityIdentifier(.developerSupport)'''
         self.assertEqual(self.rules(source), set())
+
+    def test_indirect_and_invalid_component_identifiers_are_detected(self):
+        source = '''
+        let raw = ComponentIdentifier(rawValue: "custom-id")
+        let alias = A11yID(rawValue: "bad id!")
+        let literal: ComponentIdentifier = "another-id"
+        view.accessibilityIdentifier(.unregisteredControl)
+        view.accessibilityIdentifier(.bookTile("invalid layout!"))
+        '''
+        self.assertEqual(
+            self.rules(source, "ShowBook", "ShowBook/ShowBook/View/Example.swift"),
+            {
+                "indirect_component_identifier",
+                "invalid_component_identifier_format",
+                "unknown_component_identifier",
+            },
+        )
+
+    def test_registered_static_and_dynamic_component_identifiers_are_allowed(self):
+        source = '''
+        view.accessibilityIdentifier(.developerOpenApp)
+        view.accessibilityIdentifier(.bookTile(layout.rawValue))
+        view.accessibilityIdentifier(.authProvider("google"))
+        '''
+        self.assertEqual(self.rules(source, "ShowBook", "ShowBook/ShowBook/View/Example.swift"), set())
 
     def test_approved_token_owner_keeps_color_and_symbol_definitions(self):
         self.assertEqual(self.rules('Color(red: 1, green: 0, blue: 0); Image(systemName: "star")',

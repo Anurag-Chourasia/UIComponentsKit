@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Initial IOS-56 lexical checks and explicit cross-repository coverage inventory.
+"""Initial IOS-56 lexical checks, IOS-64 ComponentIdentifier contract validation, and cross-repository coverage inventory.
 
 Exit 1 for findings, 2 for incomplete coverage. Existing violations are reported,
 never silently converted into a passing baseline. Scope is explicit in the report.
@@ -8,6 +8,67 @@ import argparse
 import json
 import re
 from pathlib import Path
+
+IDENTIFIER_FORMAT_RE = re.compile(r"^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$")
+
+REGISTERED_COMPONENT_MEMBERS = {
+    "appearanceMenu",
+    "developerAuthentication",
+    "developerOpenApp",
+    "developerPresetEmpty",
+    "developerPresetLive",
+    "developerPresetOffline",
+    "developerPresetShowcase",
+    "developerPrivacyPolicy",
+    "developerPurgeCache",
+    "developerSupport",
+    "screenTools",
+    "showcaseDemoIndicator",
+    "hideUnavailableStreams",
+    "discoverCategory",
+    "discoverScreen",
+    "discoverSortMenu",
+    "searchStateBanner",
+    "bookmarkButton",
+    "bookCoverPreview",
+    "bookLayoutMenu",
+    "shareCover",
+    "bookTile",
+    "aboutBackButton",
+    "contentCategoryTabs",
+    "contentMenuButton",
+    "contentRatioButton",
+    "contentSaveButton",
+    "contentShareButton",
+    "favoritesCell",
+    "favoritesDoneButton",
+    "favoritesFullScreenCloseButton",
+    "favoritesFullScreenRatioButton",
+    "favoritesFullScreenShareButton",
+    "favoritesList",
+    "favoritesRemoveButton",
+    "shareCopyQuoteButton",
+    "shareDoneButton",
+    "shareImageOnlyButton",
+    "shareQuoteAndImageButton",
+    "shareQuoteOnlyButton",
+    "shareSaveToPhotosButton",
+    "shareSheet",
+    "authAccount",
+    "authAccountEmail",
+    "authAccountResetPassword",
+    "authConfirmPassword",
+    "authDeleteAccount",
+    "authEmail",
+    "authError",
+    "authForgotPassword",
+    "authNotice",
+    "authPassword",
+    "authSignOut",
+    "authSubmit",
+    "authSwitchMode",
+    "authProvider",
+}
 
 
 def tokens(source):
@@ -59,9 +120,36 @@ def tokens(source):
     return result
 
 
+def unquote_swift_string(raw):
+    """Extract content of a single-line or multiline Swift string literal."""
+    match = re.match(r'^(#+)?("""|")(.*)\2(?:\1)?$', raw, re.DOTALL)
+    return match[3] if match else ""
+
+
+def call_arguments(following):
+    """Return tokens inside balanced parentheses starting at following[0] == '('."""
+    if not following or following[0][0] != "code" or following[0][1] != "(":
+        return []
+    depth = 0
+    captured = []
+    for item in following:
+        if item[0] == "code" and item[1] == "(":
+            depth += 1
+            if depth == 1:
+                continue
+        elif item[0] == "code" and item[1] == ")":
+            depth -= 1
+            if depth == 0:
+                break
+        if depth >= 1:
+            captured.append(item)
+    return captured
+
+
 def source_findings(source, owner, path):
     stream = tokens(source)
     findings = []
+    is_identifier_owner = path.endswith("UIComponentsKit/ComponentIdentifier.swift")
 
     def add(rule, token):
         findings.append({"rule": rule, "line": token[2], "path": path, "scope": owner})
@@ -88,9 +176,71 @@ def source_findings(source, owner, path):
                     break
                 if argument[0] == "string":
                     add("raw_symbol_argument", argument)
-        if name == "accessibilityIdentifier" and len(following) >= 2:
-            if following[0][1] == "(" and following[1][0] == "string":
-                add("raw_accessibility_identifier", following[1])
+        if name == "accessibilityIdentifier" and len(following) >= 2 and following[0][1] == "(":
+            args = call_arguments(following)
+            if args:
+                if args[0][0] == "string":
+                    add("raw_accessibility_identifier", args[0])
+                elif args[0][0] == "code" and args[0][1] == "." and len(args) >= 2 and args[1][0] == "code":
+                    member = args[1][1]
+                    if member == "init":
+                        add("indirect_component_identifier", args[1])
+                    elif member not in REGISTERED_COMPONENT_MEMBERS:
+                        add("unknown_component_identifier", args[1])
+                elif (
+                    len(args) >= 3
+                    and args[0][0] == "code"
+                    and args[0][1] in ("ComponentIdentifier", "A11yID")
+                    and args[1][0] == "code"
+                    and args[1][1] == "."
+                    and args[2][0] == "code"
+                ):
+                    member = args[2][1]
+                    if member != "init" and member not in REGISTERED_COMPONENT_MEMBERS:
+                        add("unknown_component_identifier", args[2])
+        if name in ("ComponentIdentifier", "A11yID"):
+            if not is_identifier_owner and following and following[0][1] == "(":
+                add("indirect_component_identifier", token)
+                for arg in call_arguments(following):
+                    if arg[0] == "string":
+                        value = unquote_swift_string(arg[1])
+                        if "\\(" not in value and not IDENTIFIER_FORMAT_RE.match(value):
+                            add("invalid_component_identifier_format", arg)
+            elif (
+                not is_identifier_owner
+                and len(following) >= 2
+                and following[0][0] == "code"
+                and following[0][1] == "."
+                and following[1][0] == "code"
+            ):
+                member = following[1][1]
+                if member == "init":
+                    add("indirect_component_identifier", following[1])
+            elif (
+                not is_identifier_owner
+                and index >= 1
+                and stream[index - 1][0] == "code"
+                and stream[index - 1][1] == ":"
+                and len(following) >= 2
+                and following[0][0] == "code"
+                and following[0][1] == "="
+                and following[1][0] == "string"
+            ):
+                add("indirect_component_identifier", following[1])
+                value = unquote_swift_string(following[1][1])
+                if "\\(" not in value and not IDENTIFIER_FORMAT_RE.match(value):
+                    add("invalid_component_identifier_format", following[1])
+        if name in ("bookTile", "authProvider") and following and following[0][1] == "(":
+            for arg in call_arguments(following):
+                if arg[0] == "string":
+                    value = unquote_swift_string(arg[1])
+                    if "\\(" not in value and not IDENTIFIER_FORMAT_RE.match(value):
+                        add("invalid_component_identifier_format", arg)
+        if is_identifier_owner and name == "registered" and len(following) >= 2 and following[0][1] == ":":
+            if following[1][0] == "string":
+                value = unquote_swift_string(following[1][1])
+                if "\\(" not in value and not IDENTIFIER_FORMAT_RE.match(value):
+                    add("invalid_component_identifier_format", following[1])
         if name in ("Color", "UIColor", "NSColor") and len(following) >= 3:
             if following[0][1] == "(" and following[1][1] in ("red", "white", "hue", "hex") and following[2][1] == ":":
                 add("inline_color_value", token)
