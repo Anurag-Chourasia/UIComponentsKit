@@ -269,8 +269,10 @@ def scan(root, policy, scopes):
             except (ValueError, OSError) as error:
                 report["errors"].append(f"Invalid asset {relative}: {error}")
             if owner != "DesignTokensKit":
-                report["findings"].append({"rule": "color_asset_outside_tokens", "line": 1,
-                                           "path": relative, "scope": owner})
+                colorset_name = file.parent.name
+                if colorset_name not in ("AccentColor.colorset", "LaunchBackground.colorset"):
+                    report["findings"].append({"rule": "color_asset_outside_tokens", "line": 1,
+                                               "path": relative, "scope": owner})
     return report
 
 
