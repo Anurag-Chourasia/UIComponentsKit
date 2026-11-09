@@ -1,5 +1,6 @@
 import SwiftUI
 import DesignTokensKit
+import LocalizationKit
 
 public enum CatalogLayout: String, CaseIterable, Identifiable, Sendable {
     case list, grid
@@ -74,6 +75,25 @@ public struct CatalogLayoutMenu: View {
     private let titleForLayout: (CatalogLayout) -> String
     private let onSelect: (CatalogLayout) -> Void
     private let onGridUnavailable: () -> Void
+
+    public init(
+        selection: CatalogLayout,
+        isAccessibilitySize: Bool = false,
+        titleKeyPath: KeyPath<CommonStrings, String>,
+        titleForLayout: @escaping (CatalogLayout) -> String = { "common.layout.\($0.rawValue)" },
+        context: CommonStrings = .shared,
+        onSelect: @escaping (CatalogLayout) -> Void,
+        onGridUnavailable: @escaping () -> Void = {}
+    ) {
+        self.init(
+            selection: selection,
+            isAccessibilitySize: isAccessibilitySize,
+            title: context[keyPath: titleKeyPath],
+            titleForLayout: titleForLayout,
+            onSelect: onSelect,
+            onGridUnavailable: onGridUnavailable
+        )
+    }
 
     public init(selection: CatalogLayout, isAccessibilitySize: Bool = false,
                 title: String = "common.layout.title",

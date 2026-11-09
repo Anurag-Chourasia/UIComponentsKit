@@ -1,11 +1,24 @@
 import SwiftUI
 import DesignTokensKit
+import LocalizationKit
 
 /// Standard offline banner built on top of IconMessageBanner.
 public struct OfflineBannerView: View {
     private let message: String
     private let isWarning: Bool
     private let backgroundColor: Color
+
+    public init(
+        messageKeyPath: KeyPath<CommonStrings, String>,
+        isWarning: Bool = true,
+        backgroundColor: KeyPath<ColorTheme, Color> = \.red,
+        context: CommonStrings = .shared,
+        colorTheme: ColorTheme = .default
+    ) {
+        self.message = context[keyPath: messageKeyPath]
+        self.isWarning = isWarning
+        self.backgroundColor = colorTheme[keyPath: backgroundColor]
+    }
 
     public init(
         message: String,
@@ -57,6 +70,19 @@ public struct EmptyStateMessageView<Actions: View>: View {
 
     public init(
         symbol: KeyPath<SymbolTheme, AppSymbol>,
+        titleKeyPath: KeyPath<CommonStrings, String>,
+        messageKeyPath: KeyPath<CommonStrings, String>,
+        context: CommonStrings = .shared,
+        @ViewBuilder actions: () -> Actions
+    ) {
+        self.symbol = symbol
+        self.title = context[keyPath: titleKeyPath]
+        self.message = context[keyPath: messageKeyPath]
+        self.actions = actions()
+    }
+
+    public init(
+        symbol: KeyPath<SymbolTheme, AppSymbol>,
         title: String,
         message: String,
         @ViewBuilder actions: () -> Actions
@@ -87,6 +113,21 @@ public struct EmptyStateMessageView<Actions: View>: View {
 }
 
 extension EmptyStateMessageView where Actions == EmptyView {
+    public init(
+        symbol: KeyPath<SymbolTheme, AppSymbol>,
+        titleKeyPath: KeyPath<CommonStrings, String>,
+        messageKeyPath: KeyPath<CommonStrings, String>,
+        context: CommonStrings = .shared
+    ) {
+        self.init(
+            symbol: symbol,
+            titleKeyPath: titleKeyPath,
+            messageKeyPath: messageKeyPath,
+            context: context,
+            actions: { EmptyView() }
+        )
+    }
+
     public init(
         symbol: KeyPath<SymbolTheme, AppSymbol>,
         title: String,

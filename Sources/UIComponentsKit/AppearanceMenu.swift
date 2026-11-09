@@ -1,5 +1,6 @@
 import SwiftUI
 import DesignTokensKit
+import LocalizationKit
 
 /// Shared appearance control. Hosts supply localized copy and optional feedback.
 public struct AppearanceMenu: View {
@@ -10,6 +11,23 @@ public struct AppearanceMenu: View {
     private let darkTitle: String
     private let iconOnly: Bool
     private let onSelection: () -> Void
+
+    public init(
+        titleKeyPath: KeyPath<CommonStrings, String>,
+        systemTitleKeyPath: KeyPath<CommonStrings, String>,
+        lightTitleKeyPath: KeyPath<CommonStrings, String>,
+        darkTitleKeyPath: KeyPath<CommonStrings, String>,
+        iconOnly: Bool = false,
+        context: CommonStrings = .shared,
+        onSelection: @escaping () -> Void = {}
+    ) {
+        self.title = context[keyPath: titleKeyPath]
+        self.systemTitle = context[keyPath: systemTitleKeyPath]
+        self.lightTitle = context[keyPath: lightTitleKeyPath]
+        self.darkTitle = context[keyPath: darkTitleKeyPath]
+        self.iconOnly = iconOnly
+        self.onSelection = onSelection
+    }
 
     public init(title: String, systemTitle: String, lightTitle: String, darkTitle: String,
                 iconOnly: Bool = false, onSelection: @escaping () -> Void = {}) {

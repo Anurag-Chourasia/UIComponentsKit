@@ -1,6 +1,7 @@
 import SwiftUI
 import XCTest
 import DesignTokensKit
+import LocalizationKit
 import UIComponentsKit
 
 @MainActor
@@ -248,5 +249,88 @@ final class ComponentsTests: XCTestCase {
         let loading = LoadingOverlayView(message: "Please wait")
         let loadingImage = try XCTUnwrap(ImageRenderer(content: loading.frame(width: 150, height: 150)).cgImage)
         XCTAssertGreaterThan(loadingImage.width, 0)
+    }
+
+    func testLocalizedKeyPathInitializersAndPlaybackSurfaceView() throws {
+        // Localized OfflineBannerView
+        let offlineBanner = OfflineBannerView(messageKeyPath: \.offlineMessage)
+        let bannerImage = try XCTUnwrap(ImageRenderer(content: offlineBanner.frame(width: 250)).cgImage)
+        XCTAssertGreaterThan(bannerImage.width, 0)
+
+        // Localized EmptyStateMessageView
+        let emptyState = EmptyStateMessageView(
+            symbol: \.tray,
+            titleKeyPath: \.emptyTitle,
+            messageKeyPath: \.emptyMessage
+        )
+        let emptyStateImage = try XCTUnwrap(ImageRenderer(content: emptyState.frame(width: 200)).cgImage)
+        XCTAssertGreaterThan(emptyStateImage.height, 0)
+
+        // Localized LoadingOverlayView
+        let localizedLoading = LoadingOverlayView(messageKeyPath: \.loading)
+        let loadingImage = try XCTUnwrap(ImageRenderer(content: localizedLoading.frame(width: 150, height: 150)).cgImage)
+        XCTAssertGreaterThan(loadingImage.width, 0)
+
+        // Localized AppearanceMenu
+        let menu = AppearanceMenu(
+            titleKeyPath: \.appearanceTitle,
+            systemTitleKeyPath: \.appearanceSystem,
+            lightTitleKeyPath: \.appearanceLight,
+            darkTitleKeyPath: \.appearanceDark
+        )
+        XCTAssertNotNil(menu)
+
+        // Localized CatalogLayoutMenu
+        let layoutMenu = CatalogLayoutMenu(
+            selection: .list,
+            titleKeyPath: \.layoutTitle,
+            onSelect: { _ in }
+        )
+        XCTAssertNotNil(layoutMenu)
+
+        // Localized PlaybackSurfaceView
+        var playPauseToggled = false
+        var muteToggled = false
+        var replayed = false
+        var stopped = false
+
+        let playback = PlaybackSurfaceView(
+            isPlaying: false,
+            isLive: true,
+            isMuted: false,
+            onPlayPause: { playPauseToggled = true },
+            onMuteToggle: { muteToggled = true },
+            onReplay: { replayed = true },
+            onStop: { stopped = true }
+        ) {
+            Color.blue.frame(width: 320, height: 180)
+        }
+        let playbackImage = try XCTUnwrap(ImageRenderer(content: playback.frame(width: 320, height: 180)).cgImage)
+        XCTAssertGreaterThan(playbackImage.width, 0)
+        XCTAssertFalse(playPauseToggled)
+        XCTAssertFalse(muteToggled)
+        XCTAssertFalse(replayed)
+        XCTAssertFalse(stopped)
+
+        // Playing & Muted configuration
+        let playingPlayback = PlaybackSurfaceView(
+            isPlaying: true,
+            isLive: false,
+            isMuted: true,
+            onPlayPause: {},
+            onMuteToggle: {}
+        )
+        let playingImage = try XCTUnwrap(ImageRenderer(content: playingPlayback.frame(width: 320, height: 180)).cgImage)
+        XCTAssertGreaterThan(playingImage.height, 0)
+
+        // Verify localization keys are populated in CommonStrings
+        let strings = CommonStrings.shared
+        XCTAssertFalse(strings.playbackPlay.isEmpty)
+        XCTAssertFalse(strings.playbackPause.isEmpty)
+        XCTAssertFalse(strings.playbackLive.isEmpty)
+        XCTAssertFalse(strings.playbackMute.isEmpty)
+        XCTAssertFalse(strings.playbackUnmute.isEmpty)
+        XCTAssertFalse(strings.playbackReplay.isEmpty)
+        XCTAssertFalse(strings.playbackStop.isEmpty)
     }
 }

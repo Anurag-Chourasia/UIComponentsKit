@@ -1,8 +1,13 @@
 import SwiftUI
 import DesignTokensKit
+import LocalizationKit
 
 public struct LoadingOverlayView: View {
     private let message: String
+
+    public init(messageKeyPath: KeyPath<CommonStrings, String>, context: CommonStrings = .shared) {
+        self.message = context[keyPath: messageKeyPath]
+    }
 
     public init(message: String) { self.message = message }
 
