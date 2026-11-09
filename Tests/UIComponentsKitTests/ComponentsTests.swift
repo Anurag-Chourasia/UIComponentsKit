@@ -432,4 +432,152 @@ final class ComponentsTests: XCTestCase {
         let defaultLoader = DefaultImageDataLoading()
         XCTAssertNotNil(defaultLoader)
     }
+
+    func testAppearanceMenuAndSelectionToggleButton() throws {
+        // AppAppearance
+        for appearance in AppAppearance.allCases {
+            XCTAssertEqual(appearance.id, appearance.rawValue)
+            _ = appearance.colorScheme
+            #if canImport(UIKit)
+            _ = appearance.userInterfaceStyle
+            #endif
+        }
+
+        // AppearanceMenu KeyPath init
+        var selected = false
+        let menu1 = AppearanceMenu(
+            titleKeyPath: \.appearanceTitle,
+            systemTitleKeyPath: \.appearanceSystem,
+            lightTitleKeyPath: \.appearanceLight,
+            darkTitleKeyPath: \.appearanceDark,
+            iconOnly: false,
+            onSelection: { selected = true }
+        )
+        let img1 = try XCTUnwrap(ImageRenderer(content: menu1).cgImage)
+        XCTAssertGreaterThan(img1.width, 0)
+        XCTAssertFalse(selected)
+
+        // AppearanceMenu String init and iconOnly
+        let menuIconOnly = AppearanceMenu(
+            title: "Appearance",
+            systemTitle: "System",
+            lightTitle: "Light",
+            darkTitle: "Dark",
+            iconOnly: true,
+            onSelection: {}
+        )
+        let img2 = try XCTUnwrap(ImageRenderer(content: menuIconOnly).cgImage)
+        XCTAssertGreaterThan(img2.width, 0)
+
+        // SelectionToggleButton selected and unselected
+        var toggleFired = false
+        let toggleSelected = SelectionToggleButton(
+            isSelected: true,
+            selectedLabel: "Checked",
+            unselectedLabel: "Unchecked",
+            action: { toggleFired = true }
+        ) {
+            Text(verbatim: "Option")
+        }
+        let toggleImg = try XCTUnwrap(ImageRenderer(content: toggleSelected).cgImage)
+        XCTAssertGreaterThan(toggleImg.width, 0)
+        XCTAssertFalse(toggleFired)
+
+        let toggleUnselected = SelectionToggleButton(
+            isSelected: false,
+            selectedLabel: "Checked",
+            unselectedLabel: "Unchecked",
+            action: {}
+        ) {
+            Text(verbatim: "Unchecked")
+        }
+        let unselectedImg = try XCTUnwrap(ImageRenderer(content: toggleUnselected).cgImage)
+        XCTAssertGreaterThan(unselectedImg.width, 0)
+    }
+
+    func testComponentThemeAndThemedSurface() throws {
+        let defaultTheme = ComponentTheme()
+        XCTAssertNotNil(defaultTheme.surface)
+        XCTAssertNotNil(defaultTheme.button)
+        XCTAssertNotNil(defaultTheme.colors)
+
+        let customTheme = ComponentTheme(
+            surface: SurfaceMetrics(cornerRadius: 16),
+            button: ButtonMetrics(minimumHeight: 50),
+            colors: SemanticColors()
+        )
+        let themedSurface = ThemedSurface {
+            Text(verbatim: "Themed Content")
+        }
+        .componentTheme(customTheme)
+        let surfaceImg = try XCTUnwrap(ImageRenderer(content: themedSurface).cgImage)
+        XCTAssertGreaterThan(surfaceImg.width, 0)
+
+        let themedButton = Button("Tap") {}
+            .buttonStyle(ThemedButtonStyle())
+            .componentTheme(customTheme)
+        let buttonImg = try XCTUnwrap(ImageRenderer(content: themedButton).cgImage)
+        XCTAssertGreaterThan(buttonImg.width, 0)
+    }
+
+    func testCatalogLayoutAndTileVariants() {
+        for layout in CatalogLayout.allCases {
+            XCTAssertEqual(layout.id, layout.rawValue)
+            _ = layout.symbolKeyPath
+            _ = layout.symbol
+            _ = layout.icon
+            XCTAssertEqual(layout.resolved(isAccessibilitySize: false), layout)
+            XCTAssertEqual(layout.resolved(isAccessibilitySize: true), .list)
+        }
+        let compactRecipeStandard = CatalogTileMetrics.compactGridRecipe(accessibility: false)
+        let compactRecipeA11y = CatalogTileMetrics.compactGridRecipe(accessibility: true)
+        XCTAssertNotEqual(compactRecipeStandard.width, compactRecipeA11y.width)
+    }
+
+    func testRemoteImageEdgeCasesAndDecoding() throws {
+        // Nil URL
+        let nilURLRemote = RemoteImage(url: nil) { img in
+            img
+        } placeholder: {
+            Color.red.frame(width: 10, height: 10)
+        }
+        let nilImg = try XCTUnwrap(ImageRenderer(content: nilURLRemote.frame(width: 10, height: 10)).cgImage)
+        XCTAssertGreaterThan(nilImg.width, 0)
+
+        // Failing loader
+        let failingLoader = AnyImageDataLoading { _ in
+            throw URLError(.cannotConnectToHost)
+        }
+        let sampleURL = try XCTUnwrap(URL(string: "https://fail.com"))
+        let failingRemote = RemoteImage(url: sampleURL, loader: failingLoader)
+        let failingImg = try XCTUnwrap(ImageRenderer(content: failingRemote.frame(width: 10, height: 10)).cgImage)
+        XCTAssertGreaterThan(failingImg.width, 0)
+
+        // Invalid image data
+        let invalidDataLoader = AnyImageDataLoading { _ in
+            Data([0x00, 0x01, 0x02, 0x03])
+        }
+        let invalidURL = try XCTUnwrap(URL(string: "https://invalid.com"))
+        let phaseView = RemoteImagePhaseView(url: invalidURL, loader: invalidDataLoader) { phase in
+            switch phase {
+            case .empty, .loading:
+                Text(verbatim: "Wait")
+            case .success:
+                Text(verbatim: "Success")
+            case .failure:
+                Text(verbatim: "Failed")
+            }
+        }
+        let phaseImg = try XCTUnwrap(ImageRenderer(content: phaseView.frame(width: 20, height: 20)).cgImage)
+        XCTAssertGreaterThan(phaseImg.width, 0)
+
+        // Exercise convenience overloads with LoadingOverlayView
+        let loadingOverlayRemote = RemoteImage(url: sampleURL, loader: failingLoader)
+        _ = try XCTUnwrap(ImageRenderer(content: loadingOverlayRemote.frame(width: 20, height: 20)).cgImage)
+
+        let loadingOverlayWithContent = RemoteImage(url: sampleURL, loader: failingLoader) { image in
+            image.resizable()
+        }
+        _ = try XCTUnwrap(ImageRenderer(content: loadingOverlayWithContent.frame(width: 20, height: 20)).cgImage)
+    }
 }
