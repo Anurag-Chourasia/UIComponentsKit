@@ -5,6 +5,10 @@ import LocalizationKit
 public struct LoadingOverlayView: View {
     private let message: String
 
+    public init(context: CommonStrings = .shared) {
+        self.message = context.loading
+    }
+
     public init(messageKeyPath: KeyPath<CommonStrings, String>, context: CommonStrings = .shared) {
         self.message = context[keyPath: messageKeyPath]
     }

@@ -333,4 +333,103 @@ final class ComponentsTests: XCTestCase {
         XCTAssertFalse(strings.playbackReplay.isEmpty)
         XCTAssertFalse(strings.playbackStop.isEmpty)
     }
+
+    func testRemoteImageAndImageDataLoadingProtocol() async throws {
+        // 1. AnyImageDataLoading and load alias
+        let sampleURL = try XCTUnwrap(URL(string: "https://example.com/test.png"))
+        let samplePayload = Data([0xDE, 0xAD, 0xBE, 0xEF])
+        let loader = AnyImageDataLoading { url in
+            XCTAssertEqual(url, sampleURL)
+            return samplePayload
+        }
+
+        let loadedData = try await loader.loadImageData(from: sampleURL)
+        XCTAssertEqual(loadedData, samplePayload)
+        let loadedViaAlias = try await loader.load(from: sampleURL)
+        XCTAssertEqual(loadedViaAlias, samplePayload)
+
+        // 2. RemoteImagePhase accessors
+        let emptyPhase = RemoteImagePhase.empty
+        XCTAssertNil(emptyPhase.image)
+        XCTAssertNil(emptyPhase.error)
+
+        let loadingPhase = RemoteImagePhase.loading
+        XCTAssertNil(loadingPhase.image)
+        XCTAssertNil(loadingPhase.error)
+
+        let sampleError = URLError(.badURL)
+        let failurePhase = RemoteImagePhase.failure(sampleError)
+        XCTAssertNil(failurePhase.image)
+        XCTAssertNotNil(failurePhase.error)
+
+        let sampleImage = Image(systemName: "photo")
+        let successPhase = RemoteImagePhase.success(sampleImage)
+        XCTAssertNotNil(successPhase.image)
+        XCTAssertNil(successPhase.error)
+
+        // 3. RemoteImage with various initializers
+        let defaultRemote = RemoteImage(url: sampleURL, loader: loader)
+        XCTAssertNotNil(defaultRemote)
+
+        let withCustomPlaceholder = RemoteImage(url: sampleURL, loader: loader) {
+            Text(verbatim: "Loading...")
+        }
+        XCTAssertNotNil(withCustomPlaceholder)
+
+        let withCustomContent = RemoteImage(url: sampleURL, loader: loader) { image in
+            image.resizable()
+        } placeholder: {
+            Text(verbatim: "Wait...")
+        }
+        XCTAssertNotNil(withCustomContent)
+
+        let withCustomContentOnly = RemoteImage(url: sampleURL, loader: loader) { image in
+            image.resizable().frame(width: 40, height: 40)
+        }
+        XCTAssertNotNil(withCustomContentOnly)
+
+        // 4. RemoteImagePhaseView
+        let phaseView = RemoteImagePhaseView(url: sampleURL, loader: loader) { phase in
+            switch phase {
+            case .empty, .loading:
+                Text(verbatim: "Loading")
+            case .success(let image):
+                image
+            case .failure:
+                Text(verbatim: "Error")
+            }
+        }
+        XCTAssertNotNil(phaseView)
+
+        // 5. Environment loader injection
+        let viewWithEnv = RemoteImage(url: sampleURL)
+            .imageDataLoader(loader)
+        XCTAssertNotNil(viewWithEnv)
+
+        // 6. Test rendering with real platform image data
+        let colorView = Color.blue.frame(width: 10, height: 10)
+        let renderer = ImageRenderer(content: colorView)
+        #if canImport(UIKit)
+        let realData = renderer.uiImage?.pngData()
+        #elseif canImport(AppKit)
+        let realData = renderer.nsImage?.tiffRepresentation
+        #else
+        let realData: Data? = nil
+        #endif
+
+        if let realData {
+            let realLoader = AnyImageDataLoading { _ in realData }
+            let renderedRemote = RemoteImage(url: sampleURL, loader: realLoader) { img in
+                img.frame(width: 10, height: 10)
+            } placeholder: {
+                Color.clear.frame(width: 10, height: 10)
+            }
+            let cgImage = try XCTUnwrap(ImageRenderer(content: renderedRemote.frame(width: 10, height: 10)).cgImage)
+            XCTAssertGreaterThan(cgImage.width, 0)
+        }
+
+        // 7. DefaultImageDataLoading instance
+        let defaultLoader = DefaultImageDataLoading()
+        XCTAssertNotNil(defaultLoader)
+    }
 }
