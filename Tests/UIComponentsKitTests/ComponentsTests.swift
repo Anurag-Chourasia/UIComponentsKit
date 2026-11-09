@@ -129,11 +129,124 @@ final class ComponentsTests: XCTestCase {
         let banner = OfflineBannerView(message: "Offline Mode")
         XCTAssertNotNil(banner)
 
+        let customBanner = OfflineBannerView(message: "Offline Warning", isWarning: false, backgroundColor: \.orange)
+        XCTAssertNotNil(customBanner)
+
         let emptyState = EmptyStateMessageView(
             symbol: \.tray,
             title: "No Items",
             message: "Check back later"
         )
         XCTAssertNotNil(emptyState)
+    }
+
+    func testKeyPathModifiersAcrossComponents() throws {
+        // IconMessageBanner with KeyPaths
+        let banner = IconMessageBanner(
+            spacing: \.eight,
+            padding: \.sixteen,
+            font: \.footnote,
+            foreground: \.white,
+            background: \.red,
+            icon: { Image(\.wifiSlash) },
+            message: { Text("Connection offline") }
+        )
+        let bannerImage = try XCTUnwrap(ImageRenderer(content: banner.frame(width: 200)).cgImage)
+        XCTAssertGreaterThan(bannerImage.width, 0)
+
+        // OutlinedIconLabel with KeyPaths
+        let outlinedSymbol = OutlinedIconLabel(
+            symbol: \.chevronLeft,
+            color: \.brandPrimary,
+            cornerRadius: \.r12,
+            lineWidth: \.two
+        )
+        let outlinedImage = try XCTUnwrap(ImageRenderer(content: outlinedSymbol).cgImage)
+        XCTAssertGreaterThan(outlinedImage.width, 0)
+
+        let outlinedNamed = OutlinedIconLabel(
+            systemImage: "star.fill",
+            color: \.yellow,
+            cornerRadius: \.thirty,
+            lineWidth: \.one
+        )
+        let namedImage = try XCTUnwrap(ImageRenderer(content: outlinedNamed).cgImage)
+        XCTAssertGreaterThan(namedImage.width, 0)
+
+        // CenteredProgressOverlay with KeyPaths and label
+        let overlay = CenteredProgressOverlay(
+            width: \.p96,
+            background: \.black,
+            opacity: \.p0_35
+        ) {
+            Text("Syncing")
+        }
+        let overlayImage = try XCTUnwrap(ImageRenderer(content: overlay.frame(height: 100)).cgImage)
+        XCTAssertGreaterThan(overlayImage.height, 0)
+
+        // StateMessage with KeyPaths for typography and spacing
+        let stateMsg = StateMessage(
+            spacing: \.twenty,
+            detailColor: \.secondary,
+            iconFont: \.title,
+            titleFont: \.headline,
+            detailFont: \.caption,
+            icon: { Image(\.exclamationmarkTriangle) },
+            title: { Text("Warning") },
+            detail: { Text("Check your configuration") },
+            actions: { Button("Retry") {} }
+        )
+        let stateMsgImage = try XCTUnwrap(ImageRenderer(content: stateMsg.frame(width: 200)).cgImage)
+        XCTAssertGreaterThan(stateMsgImage.height, 0)
+
+        // StateMessage with no actions
+        let stateMsgNoAction = StateMessage(
+            spacing: \.twelve,
+            detailColor: \.secondary,
+            iconFont: \.headline,
+            titleFont: \.subheadline,
+            detailFont: \.footnote,
+            icon: { Image(\.infoCircle) },
+            title: { Text("Information") },
+            detail: { Text("Everything is up to date") }
+        )
+        let noActionImage = try XCTUnwrap(ImageRenderer(content: stateMsgNoAction.frame(width: 200)).cgImage)
+        XCTAssertGreaterThan(noActionImage.height, 0)
+
+        // SurfaceCard with KeyPaths
+        let card = SurfaceCard(
+            surfaceColor: \.surface,
+            borderColor: \.border,
+            cornerRadius: \.r12,
+            borderWidth: \.one,
+            padding: \.sixteen
+        ) {
+            Text("Card content")
+        }
+        let cardImage = try XCTUnwrap(ImageRenderer(content: card).cgImage)
+        XCTAssertGreaterThan(cardImage.width, 0)
+
+        // ContentTile with KeyPaths
+        let tile = ContentTile(
+            spacing: \.eight,
+            metrics: SurfaceMetrics(cornerRadius: 12)
+        ) {
+            Image(\.tv)
+        } caption: {
+            Text("Living Room")
+        }
+        let tileImage = try XCTUnwrap(ImageRenderer(content: tile).cgImage)
+        XCTAssertGreaterThan(tileImage.width, 0)
+
+        // TokenButtonStyle with KeyPaths
+        let button = Button("Confirm") {}
+            .buttonStyle(TokenButtonStyle(actionColor: \.brandPrimary, onActionColor: \.white, cornerRadius: \.r12))
+        let buttonImage = try XCTUnwrap(ImageRenderer(content: button).cgImage)
+        XCTAssertGreaterThan(buttonImage.width, 0)
+
+        // LoadingOverlayView
+        let loading = LoadingOverlayView(message: "Please wait")
+        let loadingImage = try XCTUnwrap(ImageRenderer(content: loading.frame(width: 150, height: 150)).cgImage)
+        XCTAssertGreaterThan(loadingImage.width, 0)
     }
 }

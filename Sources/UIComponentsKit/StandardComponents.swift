@@ -10,7 +10,18 @@ public struct OfflineBannerView: View {
     public init(
         message: String,
         isWarning: Bool = true,
-        backgroundColor: Color = ColorTheme.default.red
+        backgroundColor: KeyPath<ColorTheme, Color> = \.red,
+        colorTheme: ColorTheme = .default
+    ) {
+        self.message = message
+        self.isWarning = isWarning
+        self.backgroundColor = colorTheme[keyPath: backgroundColor]
+    }
+
+    public init(
+        message: String,
+        isWarning: Bool = true,
+        backgroundColor: Color
     ) {
         self.message = message
         self.isWarning = isWarning
@@ -19,9 +30,9 @@ public struct OfflineBannerView: View {
 
     public var body: some View {
         IconMessageBanner(
-            padding: SpacingTheme.default.eight,
-            font: .caption,
-            foreground: ColorTheme.default.white,
+            padding: \.eight,
+            font: \.caption,
+            foreground: \.white,
             icon: {
                 Image(isWarning ? \.wifiSlash : \.wifi)
             },

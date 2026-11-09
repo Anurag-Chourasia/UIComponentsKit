@@ -27,7 +27,7 @@ public struct StateMessage<Icon: View, Title: View, Detail: View, Actions: View>
         VStack(spacing: spacing) {
             icon.font(typography.icon).accessibilityHidden(true)
             title.font(typography.title)
-            detail.font(typography.detail).foregroundColor(detailColor).multilineTextAlignment(.center)
+            detail.font(typography.detail).foregroundStyle(detailColor).multilineTextAlignment(.center)
             actions
         }
     }
@@ -63,6 +63,34 @@ extension StateMessage where Actions == EmptyView {
             actions: { EmptyView() }
         )
     }
+
+    public init(
+        spacing: KeyPath<SpacingTheme, CGFloat>,
+        detailColor: KeyPath<ColorTheme, Color> = \.secondary,
+        iconFont: KeyPath<TypographyTheme, Font> = \.largeTitle,
+        titleFont: KeyPath<TypographyTheme, Font> = \.headline,
+        detailFont: KeyPath<TypographyTheme, Font> = \.caption,
+        @ViewBuilder icon: () -> Icon,
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder detail: () -> Detail,
+        spacingTheme: SpacingTheme = .default,
+        colorTheme: ColorTheme = .default,
+        typographyTheme: TypographyTheme = .default
+    ) {
+        self.init(
+            spacing: spacingTheme[keyPath: spacing],
+            typography: MessageTypography(
+                icon: typographyTheme[keyPath: iconFont],
+                title: typographyTheme[keyPath: titleFont],
+                detail: typographyTheme[keyPath: detailFont]
+            ),
+            detailColor: colorTheme[keyPath: detailColor],
+            icon: icon,
+            title: title,
+            detail: detail,
+            actions: { EmptyView() }
+        )
+    }
 }
 
 extension StateMessage {
@@ -79,6 +107,35 @@ extension StateMessage {
         self.init(
             spacing: spacingTheme[keyPath: spacing],
             typography: MessageTypography(),
+            detailColor: colorTheme[keyPath: detailColor],
+            icon: icon,
+            title: title,
+            detail: detail,
+            actions: actions
+        )
+    }
+
+    public init(
+        spacing: KeyPath<SpacingTheme, CGFloat>,
+        detailColor: KeyPath<ColorTheme, Color> = \.secondary,
+        iconFont: KeyPath<TypographyTheme, Font> = \.largeTitle,
+        titleFont: KeyPath<TypographyTheme, Font> = \.headline,
+        detailFont: KeyPath<TypographyTheme, Font> = \.caption,
+        @ViewBuilder icon: () -> Icon,
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder detail: () -> Detail,
+        @ViewBuilder actions: () -> Actions,
+        spacingTheme: SpacingTheme = .default,
+        colorTheme: ColorTheme = .default,
+        typographyTheme: TypographyTheme = .default
+    ) {
+        self.init(
+            spacing: spacingTheme[keyPath: spacing],
+            typography: MessageTypography(
+                icon: typographyTheme[keyPath: iconFont],
+                title: typographyTheme[keyPath: titleFont],
+                detail: typographyTheme[keyPath: detailFont]
+            ),
             detailColor: colorTheme[keyPath: detailColor],
             icon: icon,
             title: title,
@@ -106,10 +163,61 @@ public struct IconMessageBanner<Icon: View, Message: View, Background: View>: Vi
         self.icon = icon(); self.message = message(); self.background = background()
     }
 
+    public init(
+        spacing: KeyPath<SpacingTheme, CGFloat>? = nil,
+        padding: KeyPath<SpacingTheme, CGFloat> = \.eight,
+        font: KeyPath<TypographyTheme, Font> = \.caption,
+        foreground: KeyPath<ColorTheme, Color> = \.primary,
+        @ViewBuilder icon: () -> Icon,
+        @ViewBuilder message: () -> Message,
+        @ViewBuilder background: () -> Background,
+        spacingTheme: SpacingTheme = .default,
+        typographyTheme: TypographyTheme = .default,
+        colorTheme: ColorTheme = .default
+    ) {
+        self.init(
+            spacing: spacing.map { spacingTheme[keyPath: $0] },
+            padding: spacingTheme[keyPath: padding],
+            font: typographyTheme[keyPath: font],
+            foreground: colorTheme[keyPath: foreground],
+            icon: icon,
+            message: message,
+            background: background
+        )
+    }
+
     public var body: some View {
         HStack(spacing: spacing) { icon.accessibilityHidden(true); message }
-            .font(font).foregroundColor(foreground).padding(padding)
+            .font(font).foregroundStyle(foreground).padding(padding)
             .frame(maxWidth: .infinity).background(background)
+    }
+}
+
+extension IconMessageBanner {
+    public init(
+        spacing: KeyPath<SpacingTheme, CGFloat>? = nil,
+        padding: KeyPath<SpacingTheme, CGFloat> = \.eight,
+        font: KeyPath<TypographyTheme, Font> = \.caption,
+        foreground: KeyPath<ColorTheme, Color> = \.primary,
+        background: KeyPath<ColorTheme, Color>,
+        @ViewBuilder icon: () -> Icon,
+        @ViewBuilder message: () -> Message,
+        spacingTheme: SpacingTheme = .default,
+        typographyTheme: TypographyTheme = .default,
+        colorTheme: ColorTheme = .default
+    ) where Background == Color {
+        self.init(
+            spacing: spacing,
+            padding: padding,
+            font: font,
+            foreground: foreground,
+            icon: icon,
+            message: message,
+            background: { colorTheme[keyPath: background] },
+            spacingTheme: spacingTheme,
+            typographyTheme: typographyTheme,
+            colorTheme: colorTheme
+        )
     }
 }
 
@@ -155,6 +263,45 @@ public struct OutlinedIconLabel: View {
                 cornerRadius: CGFloat = CornerRadius.thirty, lineWidth: CGFloat = StrokeWidth.two) {
         self.systemImage = systemImage; self.color = color; self.metrics = metrics
         self.cornerRadius = cornerRadius; self.lineWidth = lineWidth
+    }
+
+    public init(
+        symbol: KeyPath<SymbolTheme, AppSymbol>,
+        color: KeyPath<ColorTheme, Color>,
+        metrics: IconMetrics = IconMetrics(),
+        cornerRadius: KeyPath<CornerRadiusTheme, CGFloat> = \.thirty,
+        lineWidth: KeyPath<StrokeWidthTheme, CGFloat> = \.two,
+        symbolTheme: SymbolTheme = .default,
+        colorTheme: ColorTheme = .default,
+        cornerTheme: CornerRadiusTheme = .default,
+        strokeTheme: StrokeWidthTheme = .default
+    ) {
+        self.init(
+            systemImage: symbolTheme[keyPath: symbol].systemName,
+            color: colorTheme[keyPath: color],
+            metrics: metrics,
+            cornerRadius: cornerTheme[keyPath: cornerRadius],
+            lineWidth: strokeTheme[keyPath: lineWidth]
+        )
+    }
+
+    public init(
+        systemImage: String,
+        color: KeyPath<ColorTheme, Color>,
+        metrics: IconMetrics = IconMetrics(),
+        cornerRadius: KeyPath<CornerRadiusTheme, CGFloat> = \.thirty,
+        lineWidth: KeyPath<StrokeWidthTheme, CGFloat> = \.two,
+        colorTheme: ColorTheme = .default,
+        cornerTheme: CornerRadiusTheme = .default,
+        strokeTheme: StrokeWidthTheme = .default
+    ) {
+        self.init(
+            systemImage: systemImage,
+            color: colorTheme[keyPath: color],
+            metrics: metrics,
+            cornerRadius: cornerTheme[keyPath: cornerRadius],
+            lineWidth: strokeTheme[keyPath: lineWidth]
+        )
     }
 
     public var body: some View {
@@ -204,6 +351,26 @@ extension CenteredProgressOverlay where Label == EmptyView {
         self.init(
             width: width.map { metricTheme[keyPath: $0] },
             label: { EmptyView() },
+            background: { resolved }
+        )
+    }
+}
+
+extension CenteredProgressOverlay {
+    public init(
+        width: KeyPath<DesignMetricTheme, CGFloat>? = nil,
+        background: KeyPath<ColorTheme, Color>,
+        opacity: KeyPath<OpacityTheme, Double>? = nil,
+        @ViewBuilder label: () -> Label,
+        metricTheme: DesignMetricTheme = .default,
+        colorTheme: ColorTheme = .default,
+        opacityTheme: OpacityTheme = .default
+    ) where Background == Color {
+        let base = colorTheme[keyPath: background]
+        let resolved = opacity.map { base.opacity(opacityTheme[keyPath: $0]) } ?? base
+        self.init(
+            width: width.map { metricTheme[keyPath: $0] },
+            label: label,
             background: { resolved }
         )
     }

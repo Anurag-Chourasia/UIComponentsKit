@@ -44,16 +44,16 @@ public struct CatalogTile<Artwork: View, Details: View, Accessory: View>: View {
                 HStack(spacing: metrics.spacing) {
                     artwork
                     details
-                    Spacer(minLength: Spacing.zero)
+                    Spacer(minLength: 0)
                     accessory
                 }
             } else {
                 ZStack(alignment: .topTrailing) {
-                    VStack(spacing: Spacing.zero) {
+                    VStack(spacing: \.zero) {
                         artwork.padding(.vertical, metrics.artworkPadding)
-                        Spacer(minLength: Spacing.zero)
+                        Spacer(minLength: 0)
                         details.padding(.bottom, metrics.detailPadding)
-                        Spacer(minLength: Spacing.zero)
+                        Spacer(minLength: 0)
                     }
                     .frame(width: metrics.contentWidth)
                     .frame(minHeight: metrics.contentMinHeight)
@@ -123,7 +123,7 @@ public struct CatalogLayoutMenu: View {
 public extension CatalogTileMetrics {
     /// Component preset recipe for compact catalog media grids with accessibility support.
     static func compactGridRecipe(accessibility: Bool) -> Self {
-        Self(surface: SurfaceMetrics(padding: EdgeInsets(), cornerRadius: CornerRadius.twenty),
+        Self(surface: SurfaceMetrics(padding: EdgeInsets(), cornerRadius: CornerRadiusTheme.default.r20),
              width: accessibility ? 160 : 120, minimumHeight: accessibility ? 170 : 120,
              contentWidth: accessibility ? 150 : 110, contentMinHeight: accessibility ? 150 : 110)
     }

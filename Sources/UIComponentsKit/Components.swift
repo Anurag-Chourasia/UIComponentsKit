@@ -72,6 +72,48 @@ public struct SurfaceCard<Content: View>: View {
     }
 }
 
+extension SurfaceCard {
+    public init(
+        surfaceColor: KeyPath<ColorTheme, Color>,
+        borderColor: KeyPath<ColorTheme, Color> = \.clear,
+        cornerRadius: KeyPath<CornerRadiusTheme, CGFloat> = \.cardRadius,
+        borderWidth: KeyPath<StrokeWidthTheme, CGFloat> = \.one,
+        padding: KeyPath<SpacingTheme, CGFloat>? = nil,
+        cornerStyle: RoundedCornerStyle = .continuous,
+        clipsContent: Bool = false,
+        colorTheme: ColorTheme = .default,
+        cornerTheme: CornerRadiusTheme = .default,
+        strokeTheme: StrokeWidthTheme = .default,
+        spacingTheme: SpacingTheme = .default,
+        @ViewBuilder content: () -> Content
+    ) {
+        let pad: EdgeInsets
+        if let padding {
+            let val = spacingTheme[keyPath: padding]
+            pad = EdgeInsets(top: val, leading: val, bottom: val, trailing: val)
+        } else {
+            pad = EdgeInsets(top: Spacing.sixteen, leading: Spacing.sixteen,
+                             bottom: Spacing.sixteen, trailing: Spacing.sixteen)
+        }
+        let metrics = SurfaceMetrics(
+            padding: pad,
+            cornerRadius: cornerTheme[keyPath: cornerRadius],
+            borderWidth: strokeTheme[keyPath: borderWidth]
+        )
+        let colors = SemanticColors(
+            surface: colorTheme[keyPath: surfaceColor],
+            border: colorTheme[keyPath: borderColor]
+        )
+        self.init(
+            metrics: metrics,
+            colors: colors,
+            cornerStyle: cornerStyle,
+            clipsContent: clipsContent,
+            content: content
+        )
+    }
+}
+
 /// A compact vertical tile with independently composed visual and caption slots.
 /// Unlike SurfaceCard, this owns a vertical layout and inter-slot spacing.
 /// Supply decorative/accessibility modifiers on the visual where appropriate.
@@ -96,6 +138,25 @@ public struct ContentTile<Visual: View, Caption: View>: View {
         self.visual = visual(); self.caption = caption()
     }
 
+    public init(
+        alignment: HorizontalAlignment = .center,
+        spacing: KeyPath<SpacingTheme, CGFloat>,
+        metrics: SurfaceMetrics = SurfaceMetrics(),
+        colors: SemanticColors = SemanticColors(),
+        spacingTheme: SpacingTheme = .default,
+        @ViewBuilder visual: () -> Visual,
+        @ViewBuilder caption: () -> Caption
+    ) {
+        self.init(
+            alignment: alignment,
+            spacing: spacingTheme[keyPath: spacing],
+            metrics: metrics,
+            colors: colors,
+            visual: visual,
+            caption: caption
+        )
+    }
+
     public var body: some View {
         SurfaceCard(metrics: metrics, colors: colors) {
             VStack(alignment: alignment, spacing: spacing) { visual; caption }
@@ -112,6 +173,23 @@ public struct TokenButtonStyle: ButtonStyle {
 
     public init(metrics: ButtonMetrics = ButtonMetrics(), colors: SemanticColors = SemanticColors()) {
         self.metrics = metrics; self.colors = colors
+    }
+
+    public init(
+        actionColor: KeyPath<ColorTheme, Color>,
+        onActionColor: KeyPath<ColorTheme, Color> = \.onAction,
+        cornerRadius: KeyPath<CornerRadiusTheme, CGFloat> = \.cardRadius,
+        metrics: ButtonMetrics = ButtonMetrics(),
+        colorTheme: ColorTheme = .default,
+        cornerTheme: CornerRadiusTheme = .default
+    ) {
+        var buttonMetrics = metrics
+        buttonMetrics.cornerRadius = cornerTheme[keyPath: cornerRadius]
+        let colors = SemanticColors(
+            action: colorTheme[keyPath: actionColor],
+            onAction: colorTheme[keyPath: onActionColor]
+        )
+        self.init(metrics: buttonMetrics, colors: colors)
     }
 
     public func makeBody(configuration: Configuration) -> some View {

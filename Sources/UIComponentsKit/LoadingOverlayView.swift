@@ -15,8 +15,8 @@ public struct LoadingOverlayView: View {
             VStack(spacing: \.twelve) {
                 ProgressView()
                 Text(message)
-                    .font(Typography.footnote)
-                    .foregroundColor(\.secondary)
+                    .font(\.footnote)
+                    .foregroundStyle(\.secondary)
             }
             .padding(\.twenty)
             .background(.ultraThinMaterial)
