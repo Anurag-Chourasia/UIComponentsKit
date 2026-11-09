@@ -193,12 +193,17 @@ public struct TokenButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
+        let pressedOpacity: KeyPath<OpacityTheme, Double> = \.p0_85
+        let defaultOpacity: KeyPath<OpacityTheme, Double> = \.p1_0
+        let disabledOpacity: KeyPath<OpacityTheme, Double> = \.p0_5
+        let currentOpacityKeyPath = isEnabled ? (configuration.isPressed ? pressedOpacity : defaultOpacity) : disabledOpacity
+
+        return configuration.label
             .padding(metrics.padding)
             .frame(minWidth: metrics.minimumWidth, minHeight: metrics.minimumHeight)
             .foregroundStyle(colors.onAction)
             .background(RoundedRectangle(cornerRadius: metrics.cornerRadius).fill(colors.action))
             .contentShape(RoundedRectangle(cornerRadius: metrics.cornerRadius))
-            .opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1) : 0.5)
+            .opacity(currentOpacityKeyPath)
     }
 }
