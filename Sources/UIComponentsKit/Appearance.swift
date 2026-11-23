@@ -72,7 +72,9 @@ public struct AppAppearanceModifier: ViewModifier {
     public init() {}
 
     public func body(content: Content) -> some View {
-        content.background(WindowAppearance(style: selection.interfaceStyle).allowsHitTesting(false))
+        content
+            .preferredColorScheme(selection.colorScheme)
+            .background(WindowAppearance(style: selection.interfaceStyle).allowsHitTesting(false))
     }
 }
 
