@@ -1,4 +1,5 @@
 import SwiftUI
+import DesignTokensKit
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -76,7 +77,9 @@ public struct WindowAppearance: UIViewRepresentable {
         }
     }
 }
+#endif
 
+#if canImport(UIKit)
 public struct AppAppearanceModifier: ViewModifier {
     @AppStorage("appAppearance") private var selection: AppAppearance = .system
 
@@ -88,6 +91,18 @@ public struct AppAppearanceModifier: ViewModifier {
             .background(WindowAppearance(style: selection.interfaceStyle).allowsHitTesting(false))
     }
 }
+#else
+public struct AppAppearanceModifier: ViewModifier {
+    @AppStorage("appAppearance") private var selection: AppAppearance = .system
+
+    public init() {}
+
+    public func body(content: Content) -> some View {
+        content
+            .preferredColorScheme(selection.colorScheme)
+    }
+}
+#endif
 
 extension View {
     public func appAppearance() -> some View {
@@ -108,7 +123,7 @@ extension View {
         }
         #else
         self
+            .appAppearance()
         #endif
     }
 }
-#endif
