@@ -60,8 +60,19 @@ public struct WindowAppearance: UIViewRepresentable {
         }
 
         private func apply() {
-            guard let window, window.overrideUserInterfaceStyle != style else { return }
-            window.overrideUserInterfaceStyle = style
+            guard let window else { return }
+            if window.overrideUserInterfaceStyle != style {
+                window.overrideUserInterfaceStyle = style
+            }
+            window.rootViewController?.overrideUserInterfaceStyle = style
+            if let windowScene = window.windowScene {
+                for win in windowScene.windows {
+                    if win.overrideUserInterfaceStyle != style {
+                        win.overrideUserInterfaceStyle = style
+                    }
+                    win.rootViewController?.overrideUserInterfaceStyle = style
+                }
+            }
         }
     }
 }
@@ -81,6 +92,23 @@ public struct AppAppearanceModifier: ViewModifier {
 extension View {
     public func appAppearance() -> some View {
         modifier(AppAppearanceModifier())
+    }
+
+    @ViewBuilder
+    public func applyModalSheetStyle(background: Color = BrandPalette.current.background) -> some View {
+        #if os(iOS)
+        if #available(iOS 16.4, *) {
+            self
+                .presentationBackground(background)
+                .presentationDragIndicator(.visible)
+                .appAppearance()
+        } else {
+            self
+                .appAppearance()
+        }
+        #else
+        self
+        #endif
     }
 }
 #endif
